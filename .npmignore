@@ -1,0 +1,14 @@
+coverage
+test
+node_modules
+*.log
+.lintstagedrc
+.prettierignore
+.prettierrc
+favicon.ico
+vite.config.js
+dts-bundle-generator.config.json
+tsconfig.json
+index.html
+.vscode
+.github

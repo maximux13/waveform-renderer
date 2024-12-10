@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Waveform Renderer</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+            rel="stylesheet"
+        />
+        <link href="https://unpkg.com/prismjs@v1.x/themes/prism-tomorrow.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="./index.css" />
+    </head>
+
+    <body class="bg-neutral-900 text-white">
+        <div
+            id="dropzone"
+            class="z-10 px-4 h-[95vh] min-h-fit flex-col flex gap-8 justify-center items-center mx-auto shadow-xl"
+        >
+            <div id="controls" class="absolute top-4 right-4"></div>
+
+            <h1 class="text-white text-2xl">
+                <span class="sr-only">Waveform Renderer</span>
+
+                <p align="center">
+                    <img src="./.github/logo-light.svg" alt="Waveform Renderer" width="200" />
+                </img>
+            </h1>
+
+            <div
+                id="player"
+                class="group top-0 bg-emerald-800 grid gap-8 transition p-8 rounded-2xl shadow-lg w-full max-w-lg"
+            >
+                <div class="w-full bg-emerald-700 p-8 rounded-xl">
+                    <canvas id="waveform" class="h-32 w-full"></canvas>
+                    <div class="flex w-full justify-between">
+                        <span class="text-white text-xs" id="duration">0:00</span>
+                        <span class="text-white text-xs" id="remaining">-0:00</span>
+                    </div>
+                </div>
+
+                <div class="w-full flex justify-center gap-6 items-center">
+                    <button
+                        class="flex-none bg-emerald-500/10 text-white size-10 flex justify-center items-center py-2 rounded-full"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path
+                                d="M9.195 18.44c1.25.714 2.805-.189 2.805-1.629v-2.34l6.945 3.968c1.25.715 2.805-.188 2.805-1.628V8.69c0-1.44-1.555-2.343-2.805-1.628L12 11.029v-2.34c0-1.44-1.555-2.343-2.805-1.628l-7.108 4.061c-1.26.72-1.26 2.536 0 3.256l7.108 4.061Z"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        id="play"
+                        class="flex-none bg-emerald-500 text-white size-10 flex justify-center items-center py-2 rounded-full"
+                    >
+                        <span class="sr-only">Play</span>
+
+                        <svg
+                            data-icon="play"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            class="size-6"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+
+                        <svg
+                            data-icon="pause"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            class="size-6 hidden"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                    </button>
+                    <button
+                        class="flex-none bg-emerald-500/10 text-white size-10 flex justify-center items-center py-2 rounded-full"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path
+                                d="M5.055 7.06C3.805 6.347 2.25 7.25 2.25 8.69v8.122c0 1.44 1.555 2.343 2.805 1.628L12 14.471v2.34c0 1.44 1.555 2.343 2.805 1.628l7.108-4.061c1.26-.72 1.26-2.536 0-3.256l-7.108-4.061C13.555 6.346 12 7.249 12 8.689v2.34L5.055 7.061Z"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-xs text-center text-white/50">
+                Upload an audio file to render its waveform. Supported formats: <code>.mp3</code>, <code>.wav</code>,
+            </p>
+
+            <div class="text-white text-sm">
+                Made by <a class="font-semibold" href="https://github.com/maximux13">@maximux13</a>
+            </div>
+        </div>
+
+        <div class="relative bg-neutral-800 w-full p-12 z-20 shadow-[0_-10px_10px_rgba(0,0,0,0.1)]">
+            <div class="prose prose-emerald prose-invert mx-auto">
+                <h1>Waveform Renderer</h1>
+                <p class="flex gap-2 flex-wrap not-prose">
+                    <a href="#"><img src="https://img.shields.io/npm/v/waveform-renderer" alt="npm version" /></a>
+                    <a href="#"><img src="https://img.shields.io/npm/l/waveform-renderer" alt="license" /></a>
+                    <a href="#"
+                        ><img
+                            src="https://img.shields.io/github/workflow/status/maximux13/waveform-renderer/CI"
+                            alt="build status"
+                    /></a>
+                    <a href="#"><img src="https://img.shields.io/npm/dm/waveform-renderer" alt="downloads" /></a>
+                </p>
+                <p>
+                    A lightweight and customizable TypeScript library for rendering audio waveforms on HTML canvas.
+                    Create beautiful, interactive audio visualizations with ease.
+                </p>
+                <h2>📝 Table of Contents</h2>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
+                    <li>
+                        <a href="#api">API</a>
+                        <ul>
+                            <li><a href="#configuration-options">Configuration Options</a></li>
+                            <li><a href="#events">Events</a></li>
+                            <li><a href="#exports">Exports</a></li>
+                            <li><a href="#methods">Methods</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#examples">Examples</a></li>
+                    <li><a href="#browser-support">Browser Support</a></li>
+                    <li><a href="#motivation">Motivation</a></li>
+                    <li><a href="#contributing">Contributing</a></li>
+                    <li><a href="#license">License</a></li>
+                    <li><a href="#acknowledgements">Acknowledgements</a></li>
+                </ul>
+                <h2 id="features">✨ Features</h2>
+                <ul>
+                    <li>🎨 Highly customizable appearance</li>
+                    <li>⚡ Performant canvas-based rendering</li>
+                    <li>📱 Responsive and touch-friendly</li>
+                    <li>🔄 Real-time progress updates</li>
+                    <li>🎯 Interactive seeking</li>
+                    <li>💪 Written in TypeScript with full type support</li>
+                    <li>📏 Resolution independent with HiDPI/Retina support</li>
+                </ul>
+                <h2 id="installation">🚀 Installation</h2>
+                <pre><code class="language-bash">npm install waveform-renderer
+# or
+yarn add waveform-renderer
+</code></pre>
+                <h2 id="quick-start">📖 Quick Start</h2>
+                <pre><code class="language-typescript">import { WaveformRenderer } from 'waveform-renderer';
+
+// Get your canvas element
+const canvas = document.getElementById('waveform') as HTMLCanvasElement;
+
+// Prepare your audio peaks data
+const peaks = [...]; // Array of numbers
+
+// Create waveform instance
+const waveform = new WaveformRenderer(canvas, peaks, {
+  color: '#2196F3',
+  backgroundColor: '#E3F2FD',
+  progressLine: {
+    color: '#1565C0'
+  }
+});
+
+// Listen to events
+waveform.on('seek', (progress) =&gt; {
+  console.log(`Seeked to ${progress * 100}%`);
+});
+</code></pre>
+                <h2 id="api">🛠 API</h2>
+                <h3 id="configuration-options">Configuration Options</h3>
+                <h4>WaveformOptions</h4>
+                <div class="overflow-x-scroll whitespace-nowrap">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>amplitude</code></td>
+                                <td><code>number</code></td>
+                                <td><code>1</code></td>
+                                <td>Amplitude multiplier for the waveform</td>
+                            </tr>
+                            <tr>
+                                <td><code>backgroundColor</code></td>
+                                <td><code>string</code></td>
+                                <td><code>&quot;#CCCCCC&quot;</code></td>
+                                <td>Background color of the waveform</td>
+                            </tr>
+                            <tr>
+                                <td><code>barWidth</code></td>
+                                <td><code>number</code></td>
+                                <td><code>2</code></td>
+                                <td>Width of each bar in pixels</td>
+                            </tr>
+                            <tr>
+                                <td><code>borderColor</code></td>
+                                <td><code>string</code></td>
+                                <td><code>&quot;#000000&quot;</code></td>
+                                <td>Border color of the bars</td>
+                            </tr>
+                            <tr>
+                                <td><code>borderRadius</code></td>
+                                <td><code>number</code></td>
+                                <td><code>0</code></td>
+                                <td>Border radius of the bars in pixels</td>
+                            </tr>
+                            <tr>
+                                <td><code>borderWidth</code></td>
+                                <td><code>number</code></td>
+                                <td><code>0</code></td>
+                                <td>Border width of the bars in pixels</td>
+                            </tr>
+                            <tr>
+                                <td><code>color</code></td>
+                                <td><code>string</code></td>
+                                <td><code>&quot;#000000&quot;</code></td>
+                                <td>Color of the waveform bars</td>
+                            </tr>
+                            <tr>
+                                <td><code>gap</code></td>
+                                <td><code>number</code></td>
+                                <td><code>1</code></td>
+                                <td>Gap between bars in pixels</td>
+                            </tr>
+                            <tr>
+                                <td><code>minPixelRatio</code></td>
+                                <td><code>number</code></td>
+                                <td><code>1</code></td>
+                                <td>Minimum pixel ratio for rendering</td>
+                            </tr>
+                            <tr>
+                                <td><code>position</code></td>
+                                <td><code>&quot;bottom&quot; | &quot;center&quot; | &quot;top&quot;</code></td>
+                                <td><code>&quot;center&quot;</code></td>
+                                <td>Vertical positioning of the waveform</td>
+                            </tr>
+                            <tr>
+                                <td><code>progress</code></td>
+                                <td><code>number</code></td>
+                                <td><code>0</code></td>
+                                <td>Initial progress (0-1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>smoothing</code></td>
+                                <td><code>boolean</code></td>
+                                <td><code>true</code></td>
+                                <td>Whether to apply smoothing to the rendering</td>
+                            </tr>
+                            <tr>
+                                <td><code>progressLine</code></td>
+                                <td><code>ProgressLineOptions</code></td>
+                                <td><code>null</code></td>
+                                <td>Progress line options</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h4>ProgressLineOptions</h4>
+                <div class="overflow-x-scroll whitespace-nowrap">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>color</code></td>
+                                <td><code>string</code></td>
+                                <td><code>&quot;#FF0000&quot;</code></td>
+                                <td>Color of the progress line</td>
+                            </tr>
+                            <tr>
+                                <td><code>heightPercent</code></td>
+                                <td><code>number</code></td>
+                                <td><code>1</code></td>
+                                <td>Height of the line as percentage of total height</td>
+                            </tr>
+                            <tr>
+                                <td><code>position</code></td>
+                                <td><code>&quot;bottom&quot; | &quot;center&quot; | &quot;top&quot;</code></td>
+                                <td><code>&quot;center&quot;</code></td>
+                                <td>Vertical position of the line</td>
+                            </tr>
+                            <tr>
+                                <td><code>style</code></td>
+                                <td><code>&quot;solid&quot; | &quot;dashed&quot; | &quot;dotted&quot;</code></td>
+                                <td><code>&quot;solid&quot;</code></td>
+                                <td>Style of the progress line</td>
+                            </tr>
+                            <tr>
+                                <td><code>width</code></td>
+                                <td><code>number</code></td>
+                                <td><code>2</code></td>
+                                <td>Width of the line in pixels</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h3 id="events">🎯 Events</h3>
+                <p>The waveform renderer emits the following events:</p>
+                <div class="overflow-x-scroll whitespace-nowrap">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Payload</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>renderStart</code></td>
+                                <td><code>void</code></td>
+                                <td>Emitted when rendering begins</td>
+                            </tr>
+                            <tr>
+                                <td><code>renderComplete</code></td>
+                                <td><code>void</code></td>
+                                <td>Emitted when rendering is complete</td>
+                            </tr>
+                            <tr>
+                                <td><code>seek</code></td>
+                                <td><code>number</code></td>
+                                <td>Progress value between 0-1 when user seeks</td>
+                            </tr>
+                            <tr>
+                                <td><code>error</code></td>
+                                <td><code>Error</code></td>
+                                <td>Error object when an error occurs</td>
+                            </tr>
+                            <tr>
+                                <td><code>destroy</code></td>
+                                <td><code>void</code></td>
+                                <td>Emitted when the instance is destroyed</td>
+                            </tr>
+                            <tr>
+                                <td><code>ready</code></td>
+                                <td><code>void</code></td>
+                                <td>Emitted when the waveform is ready</td>
+                            </tr>
+                            <tr>
+                                <td><code>resize</code></td>
+                                <td><code>{ width: number; height: number }</code></td>
+                                <td>New dimensions when canvas is resized</td>
+                            </tr>
+                            <tr>
+                                <td><code>progressChange</code></td>
+                                <td><code>number</code></td>
+                                <td>New progress value between 0-1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Example of type-safe event handling:</p>
+                <pre><code class="language-typescript">waveform.on(&quot;resize&quot;, ({ width, height }) =&gt; {
+    console.log(`Canvas resized to ${width}x${height}`);
+});
+
+waveform.on(&quot;seek&quot;, progress =&gt; {
+    // progress is a number between 0-1
+    audioElement.currentTime = audioElement.duration * progress;
+});
+</code></pre>
+                <h2 id="exports">📦 Exports</h2>
+                <p>The library provides the following exports:</p>
+                <h3>Main Component</h3>
+                <pre><code class="language-typescript">import { WaveformRenderer } from &quot;waveform-renderer&quot;;
+</code></pre>
+                <h3>Utility Functions</h3>
+                <pre><code class="language-typescript">import { getPeaksFromAudioBuffer } from &quot;waveform-renderer&quot;;
+</code></pre>
+                <p>
+                    This utility helps you calculate peaks from an AudioBuffer, useful when you need to generate
+                    waveform data from raw audio.
+                </p>
+                <h3>TypeScript Types</h3>
+                <pre><code class="language-typescript">import type { WaveformOptions, ProgressLineOptions, WaveformEvents, RenderMode } from &quot;waveform-renderer&quot;;
+</code></pre>
+                <p>Example of using the utility function:</p>
+                <pre><code class="language-typescript">// Get an AudioBuffer from your audio source
+const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+// Calculate peaks
+const peaks = getPeaksFromAudioBuffer(audioBuffer);
+
+// Create waveform with calculated peaks
+const waveform = new WaveformRenderer(canvas, peaks, options);
+</code></pre>
+                <h3 id="methods">🔧 Methods</h3>
+                <h4>Constructor</h4>
+                <pre><code class="language-typescript">constructor(
+  canvas: HTMLCanvasElement,
+  peaks: number[],
+  options?: Partial&lt;WaveformOptions&gt;
+)
+</code></pre>
+                <h4>Instance Methods</h4>
+                <ul>
+                    <li>
+                        <code>setOptions(options: Partial&lt;WaveformOptions&gt;)</code>: Updates the waveform options
+                    </li>
+                    <li><code>setPeaks(peaks: number[])</code>: Updates the waveform peaks data</li>
+                    <li><code>setProgress(progress: number)</code>: Updates the current progress (0-1)</li>
+                    <li><code>destroy()</code>: Cleans up and removes the instance</li>
+                </ul>
+                <h2 id="examples">💡 Examples</h2>
+                <h3>Custom Styling</h3>
+                <pre><code class="language-typescript">const waveform = new WaveformRenderer(canvas, peaks, {
+    color: &quot;#2196F3&quot;,
+    backgroundColor: &quot;#E3F2FD&quot;,
+    barWidth: 3,
+    gap: 2,
+    borderRadius: 2,
+    progressLine: {
+        color: &quot;#1565C0&quot;,
+        style: &quot;dashed&quot;,
+        width: 2,
+    },
+});
+</code></pre>
+                <h3>Event Handling</h3>
+                <pre><code class="language-typescript">const waveform = new WaveformRenderer(canvas, peaks);
+
+waveform.on(&quot;ready&quot;, () =&gt; {
+    console.log(&quot;Waveform is ready!&quot;);
+});
+
+waveform.on(&quot;seek&quot;, progress =&gt; {
+    audioElement.currentTime = audioElement.duration * progress;
+});
+
+// Cleanup
+waveform.off(&quot;seek&quot;, seekHandler);
+// or remove all listeners
+waveform.removeAllListeners();
+</code></pre>
+                <h2 id="browser-support">🌐 Browser Support</h2>
+                <p>The library works in all modern browsers that support Canvas and ES6.</p>
+                <h2 id="motivation">💡 Motivation</h2>
+                <p>
+                    While <a href="https://wavesurfer.xyz/">wavesurfer.js</a> is an excellent library, we needed a more
+                    focused solution. Waveform Renderer was created to be a lightweight alternative that concentrates
+                    solely on waveform visualization, eliminating additional features like playback, regions, or
+                    spectrograms. This results in:
+                </p>
+                <ul>
+                    <li>🎯 Focused scope: just waveform rendering</li>
+                    <li>📦 Smaller bundle size</li>
+                    <li>💪 TypeScript-first development</li>
+                    <li>⚡ Optimized performance for waveform rendering</li>
+                </ul>
+                <p>
+                    Choose Waveform Renderer when you need efficient waveform visualization without the overhead of a
+                    full-featured audio library.
+                </p>
+                <h2 id="contributing">🤝 Contributing</h2>
+                <p>Contributions are welcome! Please feel free to submit a Pull Request.</p>
+                <h2 id="license">📄 License</h2>
+                <p>MIT License</p>
+                <h2 id="acknowledgements">🙏 Acknowledgements</h2>
+                <ul>
+                    <li>Inspired by <a href="https://wavesurfer.xyz/">wavesurfer.js</a></li>
+                    <li>
+                        Co-created with the help of
+                        <a href="https://www.anthropic.com/index/introducing-claude">Claude</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/prismjs@v1.x/components/prism-core.min.js"></script>
+        <script src="https://unpkg.com/prismjs@v1.x/plugins/autoloader/prism-autoloader.min.js"></script>
+
+        <script type="module" lang="ts">
+            import { Player } from "./demo/player.ts";
+
+            const dropzone = document.getElementById("dropzone");
+            const canvas = document.getElementById("waveform");
+
+            new Player({ dropzone, canvas });
+        </script>
+    </body>
+</html>

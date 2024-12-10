@@ -1,0 +1,3 @@
+{
+    "./**/*.{ts,html,json}": "npm run format"
+}

@@ -1,0 +1,113 @@
+{
+    "name": "waveform-renderer",
+    "description": "High-performance audio waveform visualization library for the web. Create customizable, interactive waveform renderers with TypeScript support and zero dependencies.",
+    "version": "1.0.0",
+    "author": {
+        "name": "Andres Alarcon",
+        "email": "work@andrez.co"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/maximux13/waveform-renderer.git"
+    },
+    "main": "./dist/waveform-renderer.cjs",
+    "module": "./dist/waveform-renderer.esm.js",
+    "devDependencies": {
+        "@eslint/js": "^9.16.0",
+        "@tailwindcss/typography": "^0.5.15",
+        "@tailwindcss/vite": "4.0.0-beta.6",
+        "@types/jsdom": "^21.1.6",
+        "@types/node": "^22.10.1",
+        "@vitest/coverage-v8": "^2.1.8",
+        "dts-bundle-generator": "^9.2.4",
+        "eslint": "^9.16.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-perfectionist": "^4.2.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "globals": "^15.13.0",
+        "jsdom": "^25.0.1",
+        "lint-staged": "^15.2.0",
+        "np": "^10.0.6",
+        "prettier": "^3.4.2",
+        "tailwindcss": "4.0.0-beta.6",
+        "terser": "^5.31.1",
+        "ts-node": "^10.9.2",
+        "tweakpane": "^4.0.5",
+        "typescript": "^5.3.3",
+        "typescript-eslint": "^8.18.0",
+        "upgradeps": "^2.0.6",
+        "vite": "^6.0.3",
+        "vitest": "^2.1.8"
+    },
+    "exports": {
+        ".": {
+            "require": "./dist/waveform-renderer.cjs",
+            "import": "./dist/waveform-renderer.esm.js",
+            "types": "./dist/waveform-renderer.d.ts"
+        },
+        "./dist/": {
+            "import": "./dist/",
+            "require": "./dist/",
+            "types": "./dist/"
+        }
+    },
+    "bugs": {
+        "url": "https://github.com/maximux13/waveform-renderer/issues"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE.md",
+        "CHANGELOG.md",
+        "src",
+        "package.json"
+    ],
+    "homepage": "https://github.com/maximux13/waveform-renderer#readme",
+    "jsdelivr": "./dist/waveform-renderer.iife.js",
+    "keywords": [
+        "waveform",
+        "audio",
+        "canvas",
+        "visualization",
+        "audio-visualization",
+        "audio-waveform",
+        "typescript",
+        "web-audio",
+        "html5-canvas",
+        "audio-player",
+        "sound-visualization",
+        "wave",
+        "peaks",
+        "renderer",
+        "audio-renderer",
+        "interactive",
+        "audio-visualization-library",
+        "waveform-renderer",
+        "canvas-renderer"
+    ],
+    "license": "MIT",
+    "private": false,
+    "scripts": {
+        "dev": "vite --host",
+        "prebuild": "rm -rf dist/*",
+        "build": "tsc && vite build",
+        "postbuild": "dts-bundle-generator --config ./dts-bundle-generator.config.ts",
+        "test": "vitest",
+        "type-check": "tsc --noEmit",
+        "lint": "eslint ./src",
+        "test:coverage": "vitest --coverage",
+        "format": "eslint --write",
+        "upgrade": "upgradeps",
+        "release": "npm run build && np"
+    },
+    "type": "module",
+    "types": "./dist/waveform-renderer.d.ts",
+    "typesVersions": {
+        "*": {
+            "*": [
+                "./dist/waveform-renderer.d.ts"
+            ]
+        }
+    },
+    "typings": "./dist/waveform-renderer.d.ts"
+}

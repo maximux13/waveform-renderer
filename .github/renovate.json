@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":pinOnlyDevDependencies",
+    ":ignoreModulesAndTests",
+    ":preserveSemverRanges",
+    "group:all",
+    "schedule:weekly",
+    ":maintainLockFilesMonthly"
+  ],
+  "labels": ["dependencies", "renovate"],
+  "lockFileMaintenance": {
+    "commitMessageAction": "Update",
+    "extends": [
+      "group:all"
+    ]
+  },
+  "separateMajorMinor": false,
+  "autoApprove": true,
+  "automerge": true,
+  "pruneBranchAfterAutomerge": true,
+  "automergeType": "branch"
+}
