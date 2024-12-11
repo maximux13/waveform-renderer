@@ -1,7 +1,7 @@
 {
     "name": "waveform-renderer",
     "description": "High-performance audio waveform visualization library for the web. Create customizable, interactive waveform renderers with TypeScript support and zero dependencies.",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "author": {
         "name": "Andres Alarcon",
         "email": "work@andrez.co"
