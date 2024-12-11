@@ -26,31 +26,58 @@ const fileName = {
 
 const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
 
-export default defineConfig({
-    base: "./",
-    build: {
-        lib: {
-            entry: path.resolve(__dirname, "src/index.ts"),
-            fileName: format => fileName[format],
-            formats,
-            name: getPackageNameCamelCase(),
+export default defineConfig(({ mode }) => {
+    const baseConfig = {
+        base: "./",
+        resolve: {
+            alias: [
+                { find: "@", replacement: path.resolve(__dirname, "src") },
+                { find: "@@", replacement: path.resolve(__dirname) },
+            ],
         },
-        minify: "terser",
-        outDir: "./dist",
-        terserOptions: {
-            keep_classnames: true,
-            keep_fnames: true,
+    };
+
+    if (mode === "webpage") {
+        return {
+            ...baseConfig,
+            build: {
+                emptyOutDir: true,
+                minify: "esbuild",
+                outDir: "../out",
+                publicDir: path.resolve(__dirname, "webpage/public"),
+                rollupOptions: {
+                    input: path.resolve(__dirname, "webpage/index.html"),
+                },
+            },
+            plugins: [tailwindcss()],
+            publicDir: path.resolve(__dirname, "webpage/public"),
+            root: path.resolve(__dirname, "webpage"),
+            server: {
+                open: "/index.html",
+            },
+        };
+    }
+
+    return {
+        ...baseConfig,
+        build: {
+            emptyOutDir: true,
+            lib: {
+                entry: path.resolve(__dirname, "src/index.ts"),
+                fileName: format => fileName[format],
+                formats,
+                name: getPackageNameCamelCase(),
+            },
+            minify: "terser",
+            outDir: "./dist",
+            terserOptions: {
+                keep_classnames: true,
+                keep_fnames: true,
+            },
         },
-    },
-    plugins: [tailwindcss()],
-    resolve: {
-        alias: [
-            { find: "@", replacement: path.resolve(__dirname, "src") },
-            { find: "@@", replacement: path.resolve(__dirname) },
-        ],
-    },
-    test: {
-        environment: "jsdom",
-        globals: true,
-    },
+        test: {
+            environment: "jsdom",
+            globals: true,
+        },
+    };
 });

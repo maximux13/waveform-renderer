@@ -89,16 +89,17 @@
     "private": false,
     "scripts": {
         "dev": "vite --host",
-        "prebuild": "rm -rf dist/*",
-        "build": "tsc && vite build",
-        "postbuild": "dts-bundle-generator --config ./dts-bundle-generator.config.ts",
+        "build": "npm run build:lib && npm run build:web",
+        "build:lib": "vite build --mode lib",
+        "build:web": "vite build --mode webpage",
+        "postbuild:lib": "dts-bundle-generator --config ./dts-bundle-generator.config.ts",
         "test": "vitest",
         "type-check": "tsc --noEmit",
         "lint": "eslint ./src",
         "test:coverage": "vitest --coverage",
-        "format": "eslint --write",
+        "format": "eslint --fix",
         "upgrade": "upgradeps",
-        "release": "npm run build && np"
+        "release": "npm run build:lib && np"
     },
     "type": "module",
     "types": "./dist/waveform-renderer.d.ts",

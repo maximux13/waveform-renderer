@@ -1,7 +1,7 @@
 import { Pane } from "tweakpane";
 
-import type WaveformRenderer from "../src/renderer";
-import type { WaveformOptions } from "../src/types";
+import type WaveformRenderer from "../../src/renderer";
+import type { WaveformOptions } from "../../src/types";
 
 const positions = { bottom: "bottom", center: "center", top: "top" };
 const styles = { dashed: "dashed", dotted: "dotted", solid: "solid" };
