@@ -185,7 +185,7 @@ constructor(
 
 - `setOptions(options: Partial<WaveformOptions>)`: Updates the waveform options
 - `setPeaks(peaks: number[])`: Updates the waveform peaks data
-- `updateProgress(progress: number)`: Updates the current progress (0-1)
+- `setProgress(progress: number)`: Updates the current progress (0-1)
 - `destroy()`: Cleans up and removes the instance
 
 ## 💡 Examples
