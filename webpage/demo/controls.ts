@@ -9,7 +9,7 @@ const styles = { dashed: "dashed", dotted: "dotted", solid: "solid" };
 export const buildControls = (waveform: WaveformRenderer, config: WaveformOptions) => {
     const pane = new Pane({
         container: document.querySelector("#controls") as HTMLElement,
-        expanded: false,
+        expanded: true,
         title: "Parameters",
     });
 
