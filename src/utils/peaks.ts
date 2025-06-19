@@ -26,7 +26,13 @@ export function getPeaksFromAudioBuffer(audioBuffer: AudioBuffer, numberOfPeaks:
  * Normalizes an array of peak values to a range of -1 to 1
  */
 export function normalizePeaks(peaks: number[]): number[] {
-    const maxPeak = Math.max(...peaks.map(Math.abs), 1);
+    let maxPeak = 1;
+    for (let i = 0; i < peaks.length; i++) {
+        const peak = Math.abs(peaks[i]);
+        if (peak > maxPeak) {
+            maxPeak = peak;
+        }
+    }
     return peaks.map(peak => peak / maxPeak);
 }
 
