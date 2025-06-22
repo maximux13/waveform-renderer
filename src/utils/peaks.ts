@@ -3,7 +3,7 @@
  */
 export function getPeaksFromAudioBuffer(audioBuffer: AudioBuffer, numberOfPeaks: number): number[] {
     const channelData = audioBuffer.getChannelData(0);
-    const peaks: number[] = new Array(numberOfPeaks);
+    const peaks: number[] = Array.from({ length: numberOfPeaks });
     const samplesPerPeak = Math.floor(channelData.length / numberOfPeaks);
 
     for (let i = 0; i < numberOfPeaks; i++) {

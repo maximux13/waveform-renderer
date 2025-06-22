@@ -1,3 +1,5 @@
 {
-    "./**/*.{ts,html,json}": "npm run format"
+    "lint-staged": {
+        "**/*.{js,ts,json}": "oxlint"
+    }
 }
