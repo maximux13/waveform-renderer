@@ -1,71 +1,77 @@
-import type { ProgressLineOptions, WaveformEvents, WaveformOptions } from "@/types";
+import type { DirtyFlags, ProgressLineOptions, WaveformEvents, WaveformOptions } from "@/types";
 
 import { DEFAULT_OPTIONS } from "@/constants";
 import { EventEmitter } from "@/events";
-import {
-    calculateBarDimensions,
-    drawProgressLine,
-    normalizePeaks,
-    normalizeProgress,
-    resizeCanvas,
-    setupCanvasContext,
-} from "@/utils";
+import { normalizePeaks, normalizeProgress, resizeCanvas, setupCanvasContext } from "@/utils";
+
+import { CacheManager } from "./cache-manager";
+import { DebugSystem } from "./debug-system";
+import { EventHandlerManager } from "./event-handler";
+import { RenderingEngine, type CustomRenderer, type RenderHook } from "./rendering-engine";
 
 export default class WaveformRenderer extends EventEmitter<WaveformEvents> {
     private readonly canvas!: HTMLCanvasElement;
     private readonly ctx!: CanvasRenderingContext2D;
-    private devicePixelRatio!: number;
+    private readonly devicePixelRatio!: number;
 
-    private frameRequest?: number;
+    // Core modules
+    private readonly cacheManager!: CacheManager;
+    private readonly debugSystem!: DebugSystem;
+    private readonly eventHandler!: EventHandlerManager;
+    private readonly renderingEngine!: RenderingEngine;
+
+    // State
     private isDestroyed: boolean = false;
     private options!: Required<WaveformOptions>;
-    private peaks!: number[];
-    private readonly resizeObserver!: ResizeObserver;
+    private peaks: number[] = [];
+    private dirtyFlags: DirtyFlags = {
+        peaks: true,
+        options: true,
+        size: true,
+        progress: true,
+    };
+
+    // Render throttling
+    private frameRequest?: number;
+    private lastRenderTime = 0;
+    private readonly minRenderInterval = 16; // ~60fps max
 
     constructor(canvas: HTMLCanvasElement, peaks: number[], options: Partial<WaveformOptions> = {}) {
         super();
 
-        try {
-            if (!canvas) {
-                throw new Error("Canvas element is required");
-            }
+        const startTime = performance.now();
 
-            if (!Array.isArray(peaks) || peaks.length === 0) {
-                throw new Error("Peaks array is required and must not be empty");
-            }
+        try {
+            this.validateInputs(canvas, peaks);
 
             this.canvas = canvas;
-            const context = this.canvas.getContext("2d");
-
-            if (!context) {
-                throw new Error("Could not get 2D context from canvas");
-            }
-
-            this.ctx = context;
+            this.ctx = this.getCanvasContext(canvas);
             this.peaks = normalizePeaks(peaks);
-            this.options = {
-                ...DEFAULT_OPTIONS,
-                ...options,
-                progressLine: options.progressLine
-                    ? {
-                          ...DEFAULT_OPTIONS.progressLine,
-                          ...options.progressLine,
-                      }
-                    : null,
-            };
-
+            this.options = this.mergeOptions(options);
             this.devicePixelRatio = Math.max(window.devicePixelRatio || 1, this.options.minPixelRatio);
 
-            this.setupContext();
+            // Initialize modules
+            this.cacheManager = new CacheManager();
+            this.debugSystem = new DebugSystem();
+            this.renderingEngine = new RenderingEngine(this.ctx, {
+                onRenderStart: () => this.emit("renderStart", undefined),
+                onRenderComplete: () => this.emit("renderComplete", undefined),
+            });
+            this.eventHandler = new EventHandlerManager(this.canvas, {
+                onSeek: progress => this.handleSeek(progress),
+                onResize: dimensions => this.handleResize(dimensions),
+                onError: error => this.handleError(error),
+            });
 
-            this.resizeObserver = new ResizeObserver(this.handleResize);
-            this.resizeObserver.observe(this.canvas);
+            if (this.options.debug) {
+                this.debugSystem.enable();
+            }
 
-            this.canvas.addEventListener("click", this.handleClick);
-            this.canvas.addEventListener("touchstart", this.handleTouch);
-
-            this.resizeCanvas();
+            this.setupCanvas();
             this.scheduleRender();
+
+            const initTime = performance.now() - startTime;
+            this.debugSystem.log(`Initialized in ${initTime.toFixed(2)}ms`);
 
             requestAnimationFrame(() => this.emit("ready", undefined));
         } catch (e) {
@@ -76,37 +82,56 @@ export default class WaveformRenderer extends EventEmitter<WaveformEvents> {
     public destroy(): void {
         if (this.isDestroyed) return;
 
+        this.debugSystem.log("Destroying renderer");
         this.emit("destroy", undefined);
         this.isDestroyed = true;
-        this.resizeObserver.disconnect();
-        this.canvas.removeEventListener("click", this.handleClick);
-        this.canvas.removeEventListener("touchend", this.handleTouch);
 
-        if (this.frameRequest) cancelAnimationFrame(this.frameRequest);
+        this.eventHandler.destroy();
+        this.cancelPendingRender();
+        this.cacheManager.clear();
     }
 
     public setOptions(options: Partial<WaveformOptions>): void {
         if (this.isDestroyed) return;
 
-        this.options = {
-            ...this.options,
-            ...options,
-        };
+        const startTime = performance.now();
+        const oldOptions = this.options;
 
+        this.options = this.mergeOptions(options, this.options);
+
+        if (options.debug !== undefined) {
+            if (options.debug) {
+                this.debugSystem.enable();
+            } else {
+                this.debugSystem.disable();
+            }
+        }
+
+        this.updateDirtyFlags(oldOptions, this.options);
         this.setupContext();
         this.scheduleRender();
+
+        const setOptionsTime = performance.now() - startTime;
+        this.debugSystem.log(`setOptions completed in ${setOptionsTime.toFixed(2)}ms`);
     }
 
     public setPeaks(peaks: number[]): void {
         if (this.isDestroyed) return;
+
+        const startTime = performance.now();
 
         try {
             if (!Array.isArray(peaks) || peaks.length === 0) {
                 throw new Error("Peaks array must not be empty");
             }
 
-            this.peaks = normalizePeaks(peaks);
+            this.peaks = normalizePeaks([...peaks]);
+            this.dirtyFlags.peaks = true;
+            this.cacheManager.invalidate();
             this.scheduleRender();
+
+            const setPeaksTime = performance.now() - startTime;
+            this.debugSystem.log(`setPeaks completed in ${setPeaksTime.toFixed(2)}ms, ${peaks.length} peaks`);
         } catch (e) {
             this.handleError(e);
         }
@@ -117,9 +142,18 @@ export default class WaveformRenderer extends EventEmitter<WaveformEvents> {
 
         try {
             const normalizedProgress = normalizeProgress(progress);
+
+            // Avoid unnecessary updates
+            if (Math.abs(this.options.progress - normalizedProgress) < 0.001) {
+                return;
+            }
+
             this.options.progress = normalizedProgress;
+            this.dirtyFlags.progress = true;
             this.emit("progressChange", normalizedProgress);
             this.scheduleRender();
+
+            this.debugSystem.log(`Progress set to ${(normalizedProgress * 100).toFixed(1)}%`);
         } catch (e) {
             this.handleError(e);
         }
@@ -139,159 +173,210 @@ export default class WaveformRenderer extends EventEmitter<WaveformEvents> {
                 this.options.progressLine = null;
             }
 
+            this.dirtyFlags.options = true;
             this.scheduleRender();
+
+            this.debugSystem.log(`Progress line options ${options ? "updated" : "disabled"}`);
         } catch (e) {
             this.handleError(e);
         }
     }
 
-    private calculateProgressFromEvent(event: MouseEvent): number {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        return normalizeProgress(x / rect.width);
+    // Debug API
+    public setDebug(enabled: boolean): void {
+        if (enabled) {
+            this.debugSystem.enable();
+        } else {
+            this.debugSystem.disable();
+        }
+        this.options.debug = enabled;
     }
 
-    private calculateProgressFromTouch(touch: Touch): number {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        return normalizeProgress(x / rect.width);
+    public getDebugInfo() {
+        return this.debugSystem.getInfo();
     }
 
-    private drawWaveform(): void {
-        if (this.isDestroyed) return;
+    public resetDebugCounters(): void {
+        this.debugSystem.reset();
+    }
 
-        this.emit("renderStart", undefined);
+    // Rendering customization API
+    public setCustomRenderer(renderer?: CustomRenderer): void {
+        this.renderingEngine.setCustomRenderer(renderer);
+        this.debugSystem.log(`Custom renderer ${renderer ? "set" : "cleared"}`);
+    }
 
-        try {
-            const { backgroundColor, color, progress } = this.options;
-            const canvasWidth = this.canvas.width / this.devicePixelRatio;
-            const canvasHeight = this.canvas.height / this.devicePixelRatio;
+    public setRenderHooks(hooks: RenderHook): void {
+        this.renderingEngine.setHooks(hooks);
+        this.debugSystem.log("Render hooks configured");
+    }
 
-            this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    public clearRenderHooks(): void {
+        this.renderingEngine.clearHooks();
+        this.debugSystem.log("Render hooks cleared");
+    }
 
-            this.drawWaveformWithColor(backgroundColor);
+    private validateInputs(canvas: HTMLCanvasElement, peaks: number[]): void {
+        if (!canvas) {
+            throw new Error("Canvas element is required");
+        }
 
-            if (progress > 0) {
-                this.ctx.save();
-                const progressWidth = canvasWidth * progress;
-                this.ctx.beginPath();
-                this.ctx.rect(0, 0, progressWidth, canvasHeight);
-                this.ctx.clip();
-                this.drawWaveformWithColor(color);
-                this.ctx.restore();
-            }
-
-            if (this.options.progressLine && progress > 0) {
-                const x = canvasWidth * progress;
-                drawProgressLine(this.ctx, x, canvasHeight, this.options.progressLine as Required<ProgressLineOptions>);
-            }
-
-            this.emit("renderComplete", undefined);
-        } catch (e) {
-            this.handleError(e);
+        if (!Array.isArray(peaks) || peaks.length === 0) {
+            throw new Error("Peaks array is required and must not be empty");
         }
     }
 
-    private drawWaveformWithColor(color: string): void {
-        const { amplitude = 1, barWidth, borderColor, borderRadius, borderWidth = 0, gap = 0, position } = this.options;
+    private getCanvasContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+        const context = canvas.getContext("2d");
+        if (!context) {
+            throw new Error("Could not get 2D context from canvas");
+        }
+        return context;
+    }
 
-        const canvasWidth = this.canvas.width / this.devicePixelRatio;
-        const canvasHeight = this.canvas.height / this.devicePixelRatio;
+    private mergeOptions(
+        newOptions: Partial<WaveformOptions>,
+        baseOptions?: Required<WaveformOptions>
+    ): Required<WaveformOptions> {
+        const base = baseOptions || DEFAULT_OPTIONS;
 
-        const initialOffset = borderWidth;
-        const availableWidth = canvasWidth - borderWidth * 2 * initialOffset;
-        const singleUnitWidth = barWidth + borderWidth * 2 + gap;
-        const totalBars = Math.floor(availableWidth / singleUnitWidth);
-        const finalTotalBars = Math.max(1, totalBars);
+        return {
+            ...base,
+            ...newOptions,
+            progressLine:
+                newOptions.progressLine !== undefined
+                    ? newOptions.progressLine
+                        ? {
+                              ...DEFAULT_OPTIONS.progressLine,
+                              ...base.progressLine,
+                              ...newOptions.progressLine,
+                          }
+                        : null
+                    : base.progressLine,
+        };
+    }
 
-        const step = this.peaks.length / finalTotalBars;
+    private updateDirtyFlags(oldOptions: Required<WaveformOptions>, newOptions: Required<WaveformOptions>): void {
+        const layoutKeys: (keyof WaveformOptions)[] = [
+            "amplitude",
+            "backgroundColor",
+            "barWidth",
+            "borderColor",
+            "borderRadius",
+            "borderWidth",
+            "color",
+            "gap",
+            "position",
+        ];
 
-        this.ctx.fillStyle = color;
-        this.ctx.strokeStyle = borderColor;
-        this.ctx.lineWidth = borderWidth;
+        const hasLayoutChanges = layoutKeys.some(key => oldOptions[key] !== newOptions[key]);
 
-        for (let i = 0; i < finalTotalBars; i++) {
-            const peakIndex = Math.floor(i * step);
-            const peak = Math.abs(this.peaks[peakIndex] || 0);
+        if (hasLayoutChanges) {
+            this.dirtyFlags.options = true;
+            this.cacheManager.invalidate();
+            this.debugSystem.log("Layout-affecting options changed, invalidating cache");
+        }
 
-            const x = initialOffset + i * singleUnitWidth;
-            const { height, y } = calculateBarDimensions(peak, canvasHeight, amplitude, position);
-
-            this.ctx.beginPath();
-
-            if (borderRadius > 0) {
-                this.ctx.roundRect(x, y, barWidth, height, borderRadius);
-            } else {
-                this.ctx.rect(x, y, barWidth, height);
-            }
-
-            this.ctx.fill();
-
-            if (borderWidth > 0) {
-                this.ctx.stroke();
-            }
+        const progressChanged = oldOptions.progress !== newOptions.progress;
+        if (progressChanged && !hasLayoutChanges) {
+            this.dirtyFlags.progress = true;
+            this.debugSystem.log("Progress changed");
         }
     }
 
-    private handleClick = (event: MouseEvent): void => {
-        event.preventDefault();
-        if (this.isDestroyed) return;
-
-        try {
-            const progress = this.calculateProgressFromEvent(event);
-            this.emit("seek", progress);
-        } catch (e) {
-            this.handleError(e);
-        }
-    };
-
-    private handleError = (e: unknown): void => {
-        console.error(e);
-        this.emit("error", e instanceof Error ? e : new Error("An unknown error occurred"));
-    };
-
-    private handleResize = (): void => {
-        if (this.isDestroyed) return;
-
-        try {
-            const rect = this.canvas.getBoundingClientRect();
-            this.emit("resize", {
-                height: rect.height,
-                width: rect.width,
-            });
-
-            this.resizeCanvas();
-            this.scheduleRender();
-        } catch (e) {
-            this.handleError(e);
-        }
-    };
-
-    private handleTouch = (event: TouchEvent): void => {
-        event.preventDefault();
-        if (this.isDestroyed || !event.changedTouches[0]) return;
-
-        try {
-            const progress = this.calculateProgressFromTouch(event.changedTouches[0]);
-            this.emit("seek", progress);
-        } catch (e) {
-            this.handleError(e);
-        }
-    };
-
-    private resizeCanvas(): void {
+    private setupCanvas(): void {
         resizeCanvas(this.canvas, this.devicePixelRatio);
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(this.devicePixelRatio, this.devicePixelRatio);
         this.setupContext();
     }
 
-    private scheduleRender(): void {
-        if (this.frameRequest) cancelAnimationFrame(this.frameRequest);
-        this.frameRequest = requestAnimationFrame(() => this.drawWaveform());
-    }
-
     private setupContext(): void {
         setupCanvasContext(this.ctx, this.options.smoothing);
+    }
+
+    private scheduleRender(): void {
+        if (this.frameRequest) {
+            return; // Already scheduled
+        }
+
+        this.frameRequest = requestAnimationFrame(() => {
+            this.frameRequest = undefined;
+            this.render();
+        });
+    }
+
+    private cancelPendingRender(): void {
+        if (this.frameRequest) {
+            cancelAnimationFrame(this.frameRequest);
+            this.frameRequest = undefined;
+        }
+    }
+
+    private render(): void {
+        if (this.isDestroyed) return;
+
+        // Throttle rendering to avoid excessive redraws
+        const now = performance.now();
+        if (now - this.lastRenderTime < this.minRenderInterval) {
+            this.scheduleRender();
+            return;
+        }
+        this.lastRenderTime = now;
+
+        const renderStartTime = performance.now();
+
+        try {
+            const cache = this.cacheManager.getCache(this.canvas, this.devicePixelRatio, this.peaks, this.options);
+            const staticPath = this.cacheManager.createStaticPath(cache, this.options.borderRadius);
+
+            this.renderingEngine.render(cache, this.options, staticPath);
+
+            // Reset dirty flags
+            this.dirtyFlags = {
+                peaks: false,
+                options: false,
+                size: false,
+                progress: false,
+            };
+
+            const renderTime = performance.now() - renderStartTime;
+            this.debugSystem.updateRenderMetrics(renderTime);
+            this.debugSystem.updateState(
+                this.canvas,
+                this.peaks.length,
+                cache.totalBars,
+                this.cacheManager.isValid(),
+                this.dirtyFlags
+            );
+            this.debugSystem.logPerformanceSummary();
+        } catch (e) {
+            this.handleError(e);
+        }
+    }
+
+    private handleSeek(progress: number): void {
+        this.debugSystem.incrementSeeks();
+        this.debugSystem.log(`Seek to ${(progress * 100).toFixed(1)}%`);
+        this.emit("seek", progress);
+    }
+
+    private handleResize(dimensions: { width: number; height: number }): void {
+        this.debugSystem.incrementResizes();
+        this.debugSystem.log(`Canvas resized to ${dimensions.width}x${dimensions.height}`);
+
+        this.emit("resize", dimensions);
+        this.dirtyFlags.size = true;
+        this.cacheManager.invalidate();
+        this.setupCanvas();
+        this.scheduleRender();
+    }
+
+    private handleError(e: unknown): void {
+        this.debugSystem.incrementErrors();
+        const error = e instanceof Error ? e : new Error("An unknown error occurred");
+        this.debugSystem.log("Error occurred", error.message);
+        console.error("WaveformRenderer error:", e);
+        this.emit("error", error);
     }
 }
