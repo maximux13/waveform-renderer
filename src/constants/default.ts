@@ -12,6 +12,8 @@ export const DEFAULT_OPTIONS: Required<WaveformOptions> = {
     minPixelRatio: 1,
     position: "center",
     progress: 0,
+    debug: false,
+    smoothing: true,
     progressLine: {
         color: "#FF0000",
         heightPercent: 1,
@@ -19,5 +21,4 @@ export const DEFAULT_OPTIONS: Required<WaveformOptions> = {
         style: "solid",
         width: 2,
     },
-    smoothing: true,
 };
