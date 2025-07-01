@@ -1,5 +1,4 @@
-import { getPeaksFromAudioBuffer, type WaveformOptions, WaveformRenderer } from "../../src/";
-import { DEFAULT_OPTIONS } from "../../src/constants/default";
+import { getPeaksFromAudioBuffer, type WaveformOptions, WaveformRenderer, DEFAULT_OPTIONS } from "../../dist/";
 import { buildControls } from "./controls";
 
 interface PlayerConfig {
@@ -117,7 +116,7 @@ export class Player {
             this.waveform = new WaveformRenderer(
                 this.config.canvas,
                 this.peaks,
-                this.config.waveformOptions ?? DEFAULT_OPTIONS
+                this.config.waveformOptions ?? DEFAULT_OPTIONS,
             );
             this.setupWaveformListeners();
             this.setControls();
