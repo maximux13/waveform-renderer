@@ -68,6 +68,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsdown",
+    "build:webpage": "pnpm build && vite build --mode webpage",
     "test": "vitest",
     "type-check": "tsc --noEmit",
     "lint": "oxlint ./src",
