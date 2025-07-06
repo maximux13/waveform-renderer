@@ -17,6 +17,7 @@
     "@types/node": "^22.10.1",
     "@vercel/analytics": "^1.5.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.1.2",
     "np": "^10.2.0",
@@ -71,11 +72,12 @@
     "build:webpage": "pnpm build && vite build --mode webpage",
     "test": "vitest",
     "type-check": "tsc --noEmit",
-    "lint": "oxlint ./src",
+    "lint": "oxlint .",
     "test:coverage": "vitest --coverage",
-    "format": "prettier --write ./src",
+    "format": "prettier --write .",
     "upgrade": "upgradeps",
-    "release": "pnpm build && np"
+    "release": "pnpm build && np",
+    "prepare": "husky"
   },
   "jsdelivr": "./dist/waveform-renderer.iife.js",
   "main": "./dist/index.cjs",

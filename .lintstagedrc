@@ -1,5 +1,6 @@
 {
-    "lint-staged": {
-        "**/*.{js,ts,json}": "oxlint"
-    }
+  "**/*.{ts,tsx,js,jsx}": [
+    "oxlint",
+    "prettier --write"
+  ]
 }

@@ -1,12 +1,12 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ['./src/index.ts'],
-  tsconfig: './tsconfig.json',
-  format: ['cjs', 'iife', 'es'],
+  entry: ["./src/index.ts"],
+  tsconfig: "./tsconfig.json",
+  format: ["cjs", "iife", "es"],
   outputOptions: {
-    "name": "WaveformRenderer",
+    name: "WaveformRenderer",
   },
   exports: true,
   dts: true,
-})
+});

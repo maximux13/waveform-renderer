@@ -12,5 +12,11 @@
     "builtin": true
   },
   "globals": {},
-  "ignorePatterns": []
+  "ignorePatterns": [
+    "**/node_modules/",
+    "**/dist/",
+    "**/coverage/",
+    "**/build/",
+    "**/*.pnpm-lock.yaml"
+  ]
 }
