@@ -1,10 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "unicorn",
-    "typescript",
-    "oxc"
-  ],
+  "plugins": ["unicorn", "typescript", "oxc"],
   "categories": {},
   "rules": {},
   "settings": {},
@@ -12,11 +8,5 @@
     "builtin": true
   },
   "globals": {},
-  "ignorePatterns": [
-    "**/node_modules/",
-    "**/dist/",
-    "**/coverage/",
-    "**/build/",
-    "**/*.pnpm-lock.yaml"
-  ]
+  "ignorePatterns": ["**/node_modules/", "**/dist/", "**/coverage/", "**/build/", "**/*.pnpm-lock.yaml"]
 }
