@@ -1,0 +1,478 @@
+---
+title: Custom Renderers
+description: Complete control over waveform visualization with custom rendering implementations
+---
+
+Custom renderers provide complete control over waveform visualization while maintaining compatibility with the library's core features like caching, events, and option management.
+
+In this guide, we'll build a complete **ConnectedWaveRenderer** that creates connected wave segments with alternating up/down patterns, developing it progressively by showing only the changes in each step.
+
+## Step 1: Basic Implementation
+
+Let's start with our basic ConnectedWaveRenderer implementation:
+
+```typescript
+import type { CustomRenderer, RenderCache, WaveformOptions } from "waveform-renderer";
+
+export class ConnectedWaveRenderer implements CustomRenderer {
+  public render(
+    ctx: CanvasRenderingContext2D,
+    cache: RenderCache,
+    options: Required<WaveformOptions>,
+    staticPath?: Path2D,
+  ): boolean {
+    ctx.save();
+
+    try {
+      // Clear canvas
+      ctx.clearRect(0, 0, cache.canvasWidth, cache.canvasHeight);
+
+      // Setup coordinate system - center at middle of canvas
+      ctx.translate(0, cache.canvasHeight / 2);
+
+      // Draw connected wave segments
+      this.renderWaveform(ctx, cache, options, options.backgroundColor);
+
+      // Handle progress if needed
+      if (options.progress > 0) {
+        this.renderProgress(ctx, cache, options);
+      }
+    } finally {
+      ctx.restore();
+    }
+
+    return true;
+  }
+
+  private renderWaveform(
+    ctx: CanvasRenderingContext2D,
+    cache: RenderCache,
+    options: Required<WaveformOptions>,
+    strokeColor: string,
+  ): void {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = options.barWidth;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    for (let i = 0; i < cache.totalBars; i++) {
+      const bar = cache.bars[i];
+      const x = bar.x;
+      const height = bar.height / 2;
+
+      // Alternate between up (even) and down (odd)
+      const isEven = i % 2 === 0;
+
+      this.drawLineSegment(ctx, x, height, cache.singleUnitWidth, isEven);
+    }
+  }
+
+  private drawLineSegment(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    height: number,
+    width: number,
+    isEven: boolean,
+  ): void {
+    ctx.beginPath();
+
+    // Direction: up for even, down for odd
+    const y = isEven ? height : -height;
+
+    // Draw connected segment with arc
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, y);
+    ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
+    ctx.lineTo(x + width, 0);
+
+    ctx.stroke();
+  }
+
+  private renderProgress(ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>): void {
+    ctx.save();
+
+    // Clip to progress area
+    const progressWidth = cache.canvasWidth * options.progress;
+    ctx.beginPath();
+    ctx.rect(0, -cache.canvasHeight / 2, progressWidth, cache.canvasHeight);
+    ctx.clip();
+
+    // Render progress waveform with different color
+    this.renderWaveform(ctx, cache, options, options.color);
+
+    ctx.restore();
+  }
+}
+```
+
+## Step 2: Adding Custom Properties and Position Support
+
+**Changes to add:**
+
+```diff
++ import type { CustomRenderer, RenderCache, WaveformOptions, RenderMode } from "waveform-renderer";
+
++ interface ConnectedWaveOptions {
++     startWithUp?: boolean; // Whether first bar goes up (true) or down (false)
++ }
+
+export class ConnectedWaveRenderer implements CustomRenderer {
++     private connectedOptions: Required<ConnectedWaveOptions>;
++
++     constructor(customOptions: ConnectedWaveOptions = {}) {
++         this.connectedOptions = {
++             startWithUp: true,
++             ...customOptions,
++         };
++     }
++
++     public updateOptions(options: Partial<ConnectedWaveOptions>): void {
++         this.connectedOptions = { ...this.connectedOptions, ...options };
++     }
+
+    public render(/* ... same parameters ... */): boolean {
+        ctx.save();
+
+        try {
+            ctx.clearRect(0, 0, cache.canvasWidth, cache.canvasHeight);
+
+-             // Setup coordinate system - center at middle of canvas
+-             ctx.translate(0, cache.canvasHeight / 2);
++             // Setup coordinate system based on position
++             this.setupCoordinateSystem(ctx, cache, options);
+
+-             this.renderWaveform(ctx, cache, options, options.backgroundColor);
++             this.renderWaveform(ctx, cache, options, options.backgroundColor, false);
+
+            if (options.progress > 0) {
+                this.renderProgress(ctx, cache, options);
+            }
+        } finally {
+            ctx.restore();
+        }
+
+        return true;
+    }
+
++     private setupCoordinateSystem(
++         ctx: CanvasRenderingContext2D,
++         cache: RenderCache,
++         options: Required<WaveformOptions>
++     ): void {
++         switch (options.position) {
++             case "center":
++                 ctx.translate(0, cache.canvasHeight / 2);
++                 break;
++             case "top":
++                 ctx.translate(0, cache.canvasHeight / 4);
++                 break;
++             case "bottom":
++                 ctx.translate(0, (cache.canvasHeight * 3) / 4);
++                 break;
++         }
++     }
+
+    private renderWaveform(
+        ctx: CanvasRenderingContext2D,
+        cache: RenderCache,
+        options: Required<WaveformOptions>,
+-         strokeColor: string
++         strokeColor: string,
++         isProgress: boolean = false
+    ): void {
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = options.barWidth;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
++         const segmentWidth = cache.singleUnitWidth;
+
+        for (let i = 0; i < cache.totalBars; i++) {
+            const bar = cache.bars[i];
+-             const x = bar.x;
+-             const height = bar.height / 2;
++             const x = bar.x + (cache.singleUnitWidth - segmentWidth) / 2;
++             let height = this.calculateHeight(bar.height / 2, cache.canvasHeight, options.position);
+
+-             const isEven = i % 2 === 0;
++             const isEven = this.connectedOptions.startWithUp ? i % 2 === 0 : i % 2 === 1;
+
+-             this.drawLineSegment(ctx, x, height, cache.singleUnitWidth, isEven);
++             this.drawLineSegment(ctx, x, height, segmentWidth, isEven, options);
+        }
+    }
+
++     private calculateHeight(barHeight: number, canvasHeight: number, position: RenderMode): number {
++         switch (position) {
++             case "top":
++             case "bottom":
++                 return Math.min(barHeight, canvasHeight / 3);
++             default:
++                 return Math.min(barHeight, canvasHeight / 2);
++         }
++     }
+
+    private drawLineSegment(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        height: number,
+        width: number,
+-         isEven: boolean
++         isEven: boolean,
++         options: Required<WaveformOptions>
+    ): void {
+        ctx.beginPath();
+
+        const y = isEven ? height : -height;
+
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, y);
+        ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
+        ctx.lineTo(x + width, 0);
+
+        ctx.stroke();
+    }
+
+    private renderProgress(/* ... same parameters ... */): void {
+        ctx.save();
+
+-         const progressWidth = cache.canvasWidth * options.progress;
+-         ctx.beginPath();
+-         ctx.rect(0, -cache.canvasHeight / 2, progressWidth, cache.canvasHeight);
+-         ctx.clip();
++         const progressWidth = cache.canvasWidth * options.progress;
++
++         ctx.beginPath();
++         switch (options.position) {
++             case "center":
++                 ctx.rect(0, -cache.canvasHeight / 2, progressWidth, cache.canvasHeight);
++                 break;
++             case "top":
++                 ctx.rect(0, -cache.canvasHeight / 4, progressWidth, cache.canvasHeight);
++                 break;
++             case "bottom":
++                 ctx.rect(0, (-cache.canvasHeight * 3) / 4, progressWidth, cache.canvasHeight);
++                 break;
++         }
++         ctx.clip();
+
+-         this.renderWaveform(ctx, cache, options, options.color);
++         this.renderWaveform(ctx, cache, options, options.color, true);
+
+        ctx.restore();
+    }
+}
+```
+
+## Step 3: Adding Border Support and Progress Line
+
+**Changes to add:**
+
+```diff
+    public render(/* ... same parameters ... */): boolean {
+        ctx.save();
+
+        try {
+            ctx.clearRect(0, 0, cache.canvasWidth, cache.canvasHeight);
+
+            this.setupCoordinateSystem(ctx, cache, options);
+
+-             this.renderWaveform(ctx, cache, options, options.backgroundColor, false);
++             // Render background (skeleton)
++             this.renderWaveform(ctx, cache, options, options.backgroundColor, false);
+
+            if (options.progress > 0) {
+                this.renderProgress(ctx, cache, options);
+            }
+
++             // Reset coordinate system for progress line
++             ctx.restore();
++             ctx.save();
++
++             // Draw progress line (in original coordinate system)
++             if (options.progressLine && options.progress > 0) {
++                 this.drawProgressLine(ctx, cache, options);
++             }
+        } finally {
+            ctx.restore();
+        }
+
+        return true;
+    }
+
+    private drawLineSegment(
+        ctx: CanvasRenderingContext2D,
+        x: number,
+        height: number,
+        width: number,
+        isEven: boolean,
+-         options: Required<WaveformOptions>
++         options: Required<WaveformOptions>,
++         isProgress: boolean
+    ): void {
+        ctx.beginPath();
+
+-         const y = isEven ? height : -height;
++         // Adjust height direction based on even/odd
++         const y = isEven ? height : -height;
+
+-         ctx.moveTo(x, 0);
+-         ctx.lineTo(x, y);
+-         ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
+-         ctx.lineTo(x + width, 0);
++         // Start at left edge, center line (y = 0)
++         ctx.moveTo(x, 0);
++
++         // Draw vertical line to peak
++         ctx.lineTo(x, y);
++
++         // Draw semicircle arc
++         ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
++
++         // Draw line back to center at right edge
++         ctx.lineTo(x + width, 0);
+
+        ctx.stroke();
+
++         // Draw border if specified and borderWidth > 0
++         if (options.borderWidth > 0) {
++             ctx.save();
++             ctx.strokeStyle = options.borderColor;
++             ctx.lineWidth = options.borderWidth;
++
++             // Redraw the same path for border
++             ctx.beginPath();
++             ctx.moveTo(x, 0);
++             ctx.lineTo(x, y);
++             ctx.arc(x + width / 2, y, width / 2, Math.PI, 0, isEven);
++             ctx.lineTo(x + width, 0);
++             ctx.stroke();
++
++             ctx.restore();
++         }
+    }
+
++     private drawProgressLine(
++         ctx: CanvasRenderingContext2D,
++         cache: RenderCache,
++         options: Required<WaveformOptions>
++     ): void {
++         if (!options.progressLine) return;
++
++         const { color, heightPercent, position, style, width } = options.progressLine;
++         const x = cache.canvasWidth * options.progress;
++         const lineHeight = cache.canvasHeight * (heightPercent || 1);
++
++         ctx.save();
++         ctx.strokeStyle = color || "#FF0000";
++         ctx.lineWidth = width || 2;
++         ctx.lineCap = "round";
++
++         // Calculate line start and end positions
++         let startY: number;
++         let endY: number;
++
++         switch (position || "center") {
++             case "bottom":
++                 startY = cache.canvasHeight;
++                 endY = cache.canvasHeight - lineHeight;
++                 break;
++             case "top":
++                 startY = 0;
++                 endY = lineHeight;
++                 break;
++             case "center":
++             default:
++                 startY = (cache.canvasHeight - lineHeight) / 2;
++                 endY = (cache.canvasHeight + lineHeight) / 2;
++                 break;
++         }
++
++         // Set line style
++         if (style && style !== "solid") {
++             const [dashSize, gapSize] = style === "dashed" ? [8, 4] : [2, 2];
++             ctx.setLineDash([dashSize, gapSize]);
++         }
++
++         // Draw the progress line
++         ctx.beginPath();
++         ctx.moveTo(x, startY);
++         ctx.lineTo(x, endY);
++         ctx.stroke();
++
++         ctx.restore();
++     }
+
+    // Update the call in renderWaveform:
+    private renderWaveform(/* ... same parameters ... */): void {
+        // ... existing code ...
+
+        for (let i = 0; i < cache.totalBars; i++) {
+            // ... existing code ...
+
+-             this.drawLineSegment(ctx, x, height, segmentWidth, isEven, options);
++             this.drawLineSegment(ctx, x, height, segmentWidth, isEven, options, isProgress);
+        }
+    }
+}
+```
+
+## Step 4: Usage Example
+
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
+import { ConnectedWaveRenderer } from "./connected-wave-renderer";
+
+// Create and configure the custom renderer
+const connectedRenderer = new ConnectedWaveRenderer({
+  startWithUp: true,
+});
+
+// Create the waveform with our custom renderer
+const waveform = new WaveformRenderer(canvas, peaks, {
+  color: "#2196F3",
+  backgroundColor: "#E3F2FD",
+  barWidth: 3,
+  gap: 10,
+  borderWidth: 1,
+  borderColor: "#1565C0",
+  position: "center",
+  progressLine: {
+    color: "#FF4081",
+    width: 2,
+    style: "dashed",
+    heightPercent: 0.8,
+  },
+});
+
+// Apply the custom renderer
+waveform.setCustomRenderer(connectedRenderer);
+
+// Update pattern direction
+connectedRenderer.updateOptions({ startWithUp: false });
+
+// Test different positions
+waveform.setOptions({ position: "top" });
+waveform.setOptions({ position: "bottom" });
+
+// Remove custom renderer
+waveform.setCustomRenderer(undefined);
+```
+
+## Debugging
+
+Enable debug mode to monitor renderer performance:
+
+```typescript
+const waveform = new WaveformRenderer(canvas, peaks, {
+  debug: true, // Enable debug logging
+});
+
+// Custom renderers will benefit from the debug information
+```
+
+## Next Steps
+
+- See [Render Hooks](/render-hooks) for lighter customization options
+- Check [API Reference](/api) for complete method documentation
+- Try the [Interactive Demo](/demo) to see custom renderers in action

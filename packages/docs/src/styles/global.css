@@ -1,0 +1,161 @@
+@layer base, starlight, theme, components, utilities;
+
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@layer components {
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #84cc16, #65a30d);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #84cc16, #65a30d);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .slider::-webkit-slider-track {
+    background: rgba(156, 163, 175, 0.5);
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .slider::-moz-range-track {
+    background: rgba(156, 163, 175, 0.5);
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  /* Dark mode slider styles */
+  @media (prefers-color-scheme: dark) {
+    .slider::-webkit-slider-thumb {
+      background: linear-gradient(45deg, #84cc16, #a3e635);
+      border: 2px solid #374151;
+    }
+
+    .slider::-moz-range-thumb {
+      background: linear-gradient(45deg, #84cc16, #a3e635);
+      border: 2px solid #374151;
+    }
+
+    .slider::-webkit-slider-track {
+      background: rgba(75, 85, 99, 0.6);
+    }
+
+    .slider::-moz-range-track {
+      background: rgba(75, 85, 99, 0.6);
+    }
+  }
+
+  /* Color input styles */
+  input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  input[type="color"]:hover {
+    transform: scale(1.02);
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border-radius: 8px;
+    border: none;
+  }
+
+  input[type="color"]::-moz-color-swatch {
+    border-radius: 8px;
+    border: none;
+  }
+
+  /* Select styles for dark mode */
+  select option {
+    background-color: #f9fafb;
+    color: #374151;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    select option {
+      background-color: #1f2937;
+      color: #e5e7eb;
+    }
+  }
+
+  /* Improved focus styles */
+  .slider:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.3);
+  }
+
+  input[type="color"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.3);
+  }
+
+  /* Checkbox custom styles */
+  input[type="checkbox"]:checked {
+    background-color: #84cc16;
+    border-color: #84cc16;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    input[type="checkbox"]:checked {
+      background-color: #a3e635;
+      border-color: #a3e635;
+    }
+  }
+
+  /* Animation improvements */
+  .transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Enhanced backdrop blur */
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* Better shadow for dark mode */
+  @media (prefers-color-scheme: dark) {
+    .shadow-2xl {
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .shadow-lg {
+      box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.3),
+        0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+  }
+}

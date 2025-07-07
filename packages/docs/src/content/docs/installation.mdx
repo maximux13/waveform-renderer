@@ -1,0 +1,98 @@
+---
+title: Installation
+description: Learn how to install and set up Waveform Renderer in your project
+---
+
+import InstallTabs from "../../components/InstallTabs.mdx";
+
+Get started with Waveform Renderer by installing it in your project using your preferred package manager.
+
+## Package Installation
+
+<InstallTabs />
+
+### CDN Usage
+
+For quick prototyping or simple projects, you can use Waveform Renderer directly from a CDN:
+
+#### ES Modules (Recommended)
+
+```html
+<script type="module">
+  import { WaveformRenderer } from "https://cdn.jsdelivr.net/npm/waveform-renderer@1.0.0-beta.1/dist/waveform-renderer.esm.js";
+  // Your code here
+</script>
+```
+
+#### IIFE (Browser Global)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/waveform-renderer@latest/dist/index.iife.js"></script>
+<script>
+  const { WaveformRenderer } = window.WaveformRenderer;
+  // Your code here
+</script>
+```
+
+## TypeScript Support
+
+Waveform Renderer is built with TypeScript and includes comprehensive type definitions out of the box. No additional `@types` package is needed.
+
+```typescript
+import { WaveformRenderer, type WaveformOptions } from "waveform-renderer";
+
+const options: WaveformOptions = {
+  color: "#3b82f6",
+  barWidth: 2,
+  gap: 1,
+};
+```
+
+## Bundle Sizes
+
+Waveform Renderer is designed to be lightweight:
+
+- **ES Module**: ~5KB minified + gzipped
+- **CommonJS**: ~4KB minified + gzipped
+- **IIFE**: ~4KB minified + gzipped
+
+## Browser Requirements
+
+### Required Features
+
+- **Canvas API** - For rendering waveforms
+- **ES6+ Support** - Modern JavaScript features
+- **Typed Arrays** - For efficient peak data processing
+
+### Optional Features
+
+- **Web Audio API** - Only needed if using the `getPeaksFromAudioBuffer` utility
+- **ResizeObserver** - For automatic canvas resizing (falls back to window resize events)
+
+## Verification
+
+After installation, verify everything is working by creating a simple test:
+
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
+
+// Create a canvas element
+const canvas = document.createElement("canvas");
+canvas.width = 800;
+canvas.height = 200;
+document.body.appendChild(canvas);
+
+// Create some sample data
+const peaks = Array.from({ length: 100 }, () => Math.random());
+
+// Initialize the renderer
+const waveform = new WaveformRenderer(canvas, peaks);
+
+console.log("Waveform Renderer successfully initialized!");
+```
+
+If you see the console message and a waveform appears on your canvas, you're ready to go!
+
+## Next Steps
+
+Now that you have Waveform Renderer installed, try our [Interactive Demo](/demo/) to see it in action, check out the [Getting Started](/getting-started/) guide to learn the basics, or explore the [API Reference](/api/) to see all available options.`

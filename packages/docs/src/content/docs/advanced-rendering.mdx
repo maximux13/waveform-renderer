@@ -1,0 +1,112 @@
+---
+title: Advanced Rendering
+description: Extend and customize waveform visualization with custom renderers and render hooks
+---
+
+Waveform Renderer provides two powerful mechanisms for customizing the visualization beyond the standard options: **Custom Renderers** and **Render Hooks**.
+
+## Choose Your Approach
+
+### 🎨 Custom Renderers
+
+**Complete control over waveform visualization**
+
+Use custom renderers when you need to completely change how the waveform is drawn. Perfect for creating entirely new visualization styles or implementing complex rendering algorithms.
+
+- Replace the entire rendering pipeline
+- Full control over canvas operations
+- Advanced caching and optimization
+- Complex visual effects
+
+[**📖 Learn about Custom Renderers →**](/custom-renderers)
+
+**Best for:**
+
+- Line-based waveforms instead of bars
+- Circular or radial waveforms
+- 3D visualizations
+- Custom drawing algorithms
+
+---
+
+### 🔧 Render Hooks
+
+**Lightweight extensions to the default rendering**
+
+Use render hooks when you want to add custom elements on top of the standard waveform rendering. Perfect for overlays, annotations, and visual effects.
+
+- Extend the default rendering pipeline
+- Hook into specific rendering phases
+- Minimal performance impact
+- Easy to implement and maintain
+
+[**📖 Learn about Render Hooks →**](/render-hooks)
+
+**Best for:**
+
+- Progress indicators and markers
+- Beat markers and time scales
+- Overlays and watermarks
+- Real-time frequency analysis
+- Debug visualizations
+
+---
+
+## Quick Comparison
+
+| Feature         | Custom Renderers         | Render Hooks           |
+| --------------- | ------------------------ | ---------------------- |
+| **Complexity**  | High                     | Low                    |
+| **Control**     | Complete                 | Targeted               |
+| **Performance** | Can optimize             | Minimal impact         |
+| **Use Case**    | New visualization styles | Enhance existing style |
+| **Maintenance** | Full responsibility      | Library handles core   |
+
+## Getting Started
+
+### For Complete Customization
+
+If you want to fundamentally change how waveforms are visualized:
+
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
+import { MyCustomRenderer } from "./my-custom-renderer";
+
+const customRenderer = new MyCustomRenderer();
+const waveform = new WaveformRenderer(canvas, peaks);
+waveform.setCustomRenderer(customRenderer);
+```
+
+[**📖 Full Custom Renderer Guide →**](/custom-renderers)
+
+### For Adding Enhancements
+
+If you want to add elements on top of the standard waveform:
+
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
+
+const waveform = new WaveformRenderer(canvas, peaks);
+waveform.setRenderHooks({
+  afterComplete: (ctx, cache, options) => {
+    // Add custom overlay
+    ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+    ctx.fillRect(0, 0, 100, 20);
+  },
+});
+```
+
+[**📖 Full Render Hooks Guide →**](/render-hooks)
+
+## Next Steps
+
+1. **Choose your approach** based on your customization needs
+2. **Follow the detailed guides** for implementation examples
+3. **Experiment** with the interactive demo to see different techniques
+4. **Combine approaches** - use both custom renderers and hooks together
+
+## Need Help?
+
+- Check the [API Reference](/api) for complete method documentation
+- Try the [Interactive Demo](/demo) to see examples in action
+- Look at framework-specific guides like [React Integration](/react-integration)

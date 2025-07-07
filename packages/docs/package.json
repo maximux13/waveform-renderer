@@ -1,0 +1,33 @@
+{
+  "name": "@waveform-renderer/docs",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "type-check": "astro check",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/preact": "^4.1.0",
+    "@astrojs/starlight": "^0.34.4",
+    "@astrojs/starlight-tailwind": "^4.0.1",
+    "@tabler/icons-preact": "^3.34.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@vercel/analytics": "^1.5.0",
+    "astro": "^5.6.1",
+    "preact": "^10.26.9",
+    "sharp": "^0.34.2",
+    "starlight-theme-black": "^0.6.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "waveform-renderer": "workspace:*"
+  },
+  "devDependencies": {
+    "@fontsource/geist-mono": "^5.2.6",
+    "@fontsource/geist-sans": "^5.2.5"
+  }
+}

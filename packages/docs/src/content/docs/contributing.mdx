@@ -1,0 +1,639 @@
+---
+title: Contributing
+description: Learn how to contribute to Waveform Renderer development
+---
+
+We welcome contributions to Waveform Renderer! Whether you're fixing bugs, adding features, improving documentation, or helping with testing, your contributions make this project better for everyone.
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+Before you begin, make sure you have:
+
+- **Node.js** 18+ installed
+- **pnpm** package manager (recommended)
+- **Git** for version control
+- A **GitHub account** for pull requests
+
+### Development Setup
+
+1. **Fork and clone the repository:**
+
+```bash
+# Fork the repo on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/waveform-renderer.git
+cd waveform-renderer
+```
+
+2. **Install dependencies:**
+
+```bash
+# Install all workspace dependencies
+pnpm install
+```
+
+3. **Verify the setup:**
+
+```bash
+# Run tests to ensure everything works
+pnpm test
+
+# Build all packages
+pnpm build
+
+# Start development mode
+pnpm dev:lib
+```
+
+### Project Structure
+
+This is a monorepo with the following structure:
+
+```
+waveform-renderer/
+├── packages/
+│   ├── waveform-renderer/     # Main library package
+│   │   ├── src/               # Library source code
+│   │   ├── test/              # Unit tests
+│   │   ├── dist/              # Built library (generated)
+│   │   ├── package.json       # Library package config
+│   │   ├── tsconfig.json      # TypeScript config
+│   │   ├── vitest.config.ts   # Test configuration
+│   │   └── tsdown.config.ts   # Build configuration
+│   └── docs/                  # Documentation site
+│       ├── src/               # Starlight documentation
+│       ├── dist/              # Built docs (generated)
+│       └── package.json       # Docs package config
+├── pnpm-workspace.yaml        # Workspace configuration
+├── package.json               # Root package.json
+└── README.md                  # Project overview
+```
+
+## 🛠️ Development Commands
+
+### Library Development
+
+```bash
+# Start development mode (watch for changes)
+pnpm dev:lib
+
+# Build the library
+pnpm build:lib
+
+# Run tests
+pnpm test
+
+# Run tests with coverage
+cd packages/waveform-renderer
+pnpm test:coverage
+
+# Type checking
+pnpm type-check
+
+# Linting
+pnpm lint
+```
+
+### Documentation Development
+
+```bash
+# Start docs development server
+pnpm dev:docs
+
+# Build documentation
+pnpm build:docs
+```
+
+### Global Commands
+
+```bash
+# Build everything
+pnpm build
+
+# Test everything
+pnpm test
+
+# Type check all packages
+pnpm type-check
+
+# Lint all packages
+pnpm lint
+
+# Format code
+pnpm format
+```
+
+## 🧪 Testing
+
+Waveform Renderer has comprehensive test coverage with 231+ unit tests.
+
+### Running Tests
+
+```bash
+# Run all tests in watch mode
+pnpm test
+
+# Run tests with coverage report
+cd packages/waveform-renderer
+pnpm test:coverage
+```
+
+### Writing Tests
+
+Tests are located in the `packages/waveform-renderer/test/` directory and use [Vitest](https://vitest.dev/) with [jsdom](https://github.com/jsdom/jsdom) for browser environment simulation.
+
+```typescript
+// Example test structure
+import { describe, it, expect, beforeEach } from "vitest";
+import { WaveformRenderer } from "../src/renderer";
+
+describe("WaveformRenderer", () => {
+  let canvas: HTMLCanvasElement;
+  let peaks: number[];
+
+  beforeEach(() => {
+    canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 200;
+    peaks = Array.from({ length: 100 }, () => Math.random());
+  });
+
+  it("should initialize correctly", () => {
+    const waveform = new WaveformRenderer(canvas, peaks);
+    expect(waveform).toBeDefined();
+    waveform.destroy();
+  });
+
+  it("should handle progress updates", () => {
+    const waveform = new WaveformRenderer(canvas, peaks);
+
+    waveform.setProgress(0.5);
+    // Add assertions here
+
+    waveform.destroy();
+  });
+});
+```
+
+### Test Guidelines
+
+- **Always test both happy path and edge cases**
+- **Clean up resources** - Call `destroy()` on renderer instances
+- **Use descriptive test names** that explain what is being tested
+- **Group related tests** in `describe` blocks
+- **Mock external dependencies** when necessary
+- **Maintain high code coverage** (aim for 90%+)
+
+## 📝 Code Style & Quality
+
+### TypeScript
+
+- **Strict mode enabled** - Follow TypeScript best practices
+- **Explicit types** - Avoid `any`, prefer specific interfaces
+- **JSDoc comments** for public APIs
+- **Consistent naming** - Use camelCase for variables, PascalCase for classes
+
+```typescript
+// ✅ Good
+interface WaveformOptions {
+  color?: string;
+  amplitude?: number;
+}
+
+/**
+ * Creates a new waveform renderer
+ * @param canvas - The canvas element to render on
+ * @param peaks - Array of peak values
+ * @param options - Configuration options
+ */
+export class WaveformRenderer {
+  constructor(canvas: HTMLCanvasElement, peaks: number[], options: Partial<WaveformOptions> = {}) {
+    // Implementation
+  }
+}
+
+// ❌ Avoid
+function doStuff(data: any): any {
+  // Unclear function with any types
+}
+```
+
+### Code Organization
+
+- **Single responsibility** - Each class/function should have one purpose
+- **Immutable data** - Prefer readonly interfaces and avoid mutations
+- **Error handling** - Use proper error types and meaningful messages
+- **Performance** - Consider caching and optimization opportunities
+
+### Linting
+
+The project uses [oxlint](https://github.com/oxc-project/oxc) for fast linting:
+
+```bash
+# Run linter
+pnpm lint
+
+# Lint is also run automatically in CI
+```
+
+## 🔄 Pull Request Process
+
+### Before You Start
+
+1. **Check existing issues** - Look for related issues or discussions
+2. **Open an issue first** for significant changes to discuss the approach
+3. **Keep changes focused** - One feature/fix per PR
+
+### Creating a Pull Request
+
+1. **Create a feature branch:**
+
+```bash
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/bug-description
+```
+
+2. **Make your changes:**
+   - Write code following our style guidelines
+   - Add/update tests for your changes
+   - Update documentation if needed
+   - Ensure all tests pass
+
+3. **Commit your changes:**
+
+```bash
+# Use conventional commit format
+git commit -m "feat: add custom renderer support"
+git commit -m "fix: resolve memory leak in cache manager"
+git commit -m "docs: update API documentation"
+```
+
+4. **Push and create PR:**
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Then create a pull request on GitHub with:
+
+- **Clear title** describing the change
+- **Detailed description** explaining what and why
+- **Link to related issues** if applicable
+- **Screenshots/examples** for UI changes
+
+### PR Checklist
+
+Before submitting, ensure:
+
+- [ ] **Tests pass** - `pnpm test` runs successfully
+- [ ] **Types are correct** - `pnpm type-check` passes
+- [ ] **Code is linted** - `pnpm lint` passes
+- [ ] **Documentation updated** - If adding/changing public APIs
+- [ ] **Backward compatibility** - Breaking changes are documented
+- [ ] **Performance impact** - Consider if changes affect performance
+
+### Code Review Process
+
+1. **Automated checks** run on all PRs (tests, linting, build)
+2. **Manual review** by maintainers
+3. **Feedback incorporation** - Address review comments
+4. **Approval and merge** - Once approved, maintainers will merge
+
+## 🐛 Bug Reports
+
+### Before Reporting
+
+- **Search existing issues** to avoid duplicates
+- **Try the latest version** to see if it's already fixed
+- **Prepare a minimal reproduction** case
+
+### Bug Report Template
+
+````markdown
+**Bug Description**
+A clear description of what the bug is.
+
+**To Reproduce**
+Steps to reproduce the behavior:
+
+1. Create renderer with '...'
+2. Call method '...'
+3. See error
+
+**Expected Behavior**
+What you expected to happen.
+
+**Actual Behavior**
+What actually happened.
+
+**Environment**
+
+- Browser: [e.g. Chrome 120]
+- Library version: [e.g. 1.0.0-beta.4]
+- Operating System: [e.g. macOS 14]
+
+**Code Example**
+
+```typescript
+// Minimal code to reproduce the issue
+const canvas = document.getElementById("canvas");
+const peaks = [0.1, 0.5, 0.3];
+const waveform = new WaveformRenderer(canvas, peaks);
+// ... problematic code
+```
+````
+
+**Additional Context**
+Any other context about the problem.
+
+````
+
+## 💡 Feature Requests
+
+### Before Requesting
+
+- **Check existing issues** and discussions
+- **Consider if it fits** the project scope
+- **Think about API design** and backward compatibility
+
+### Feature Request Template
+
+```markdown
+**Feature Description**
+A clear description of what you want to happen.
+
+**Use Case**
+Describe your specific use case and why existing functionality doesn't work.
+
+**Proposed API**
+If you have ideas about how the API should look:
+
+```typescript
+// Example of proposed API
+waveform.setNewFeature({
+  option1: 'value',
+  option2: true
+});
+````
+
+**Alternatives Considered**
+Other approaches you've considered.
+
+**Additional Context**
+Screenshots, mockups, or other helpful context.
+
+````
+
+## 📚 Documentation Contributions
+
+Documentation is just as important as code! You can help by:
+
+### Types of Documentation
+
+- **API Documentation** - Improving method descriptions and examples
+- **Guides and Tutorials** - Adding usage examples and best practices
+- **README improvements** - Making the project easier to understand
+- **Code comments** - Adding JSDoc comments for better IntelliSense
+
+### Documentation Setup
+
+```bash
+# Start documentation development
+pnpm dev:docs
+
+# This starts the Astro Starlight dev server
+# Visit http://localhost:4321 to see your changes
+````
+
+### Documentation Guidelines
+
+- **Clear and concise** - Explain concepts simply
+- **Working examples** - All code examples should be runnable
+- **Progressive complexity** - Start simple, build up to advanced
+- **Visual aids** - Use images/diagrams when helpful
+
+## 🏷️ Release Process
+
+Releases are handled by project maintainers using the [`np`](https://github.com/sindresorhus/np) library, which automates the entire release workflow.
+
+### Automated Release with `np`
+
+The project uses `np` to handle:
+
+- **Version bumping** following [Semantic Versioning](https://semver.org/)
+- **Git tagging** and pushing changes
+- **npm publishing** with proper dist-tags
+- **GitHub release creation** with release notes
+- **Build verification** before publishing
+
+### Release Command
+
+```bash
+# Navigate to the library package
+cd packages/waveform-renderer
+
+# Run the automated release process
+pnpm release
+# This runs: pnpm build && np
+```
+
+The `np` tool will:
+
+1. **Verify working directory** is clean
+2. **Run tests and build** to ensure quality
+3. **Prompt for version bump** (patch/minor/major)
+4. **Generate changelog** from commits
+5. **Create git tag** and push to remote
+6. **Publish to npm** with proper settings
+7. **Create GitHub release** with notes
+
+### Versioning Strategy
+
+- **Major** (1.0.0) - Breaking changes
+- **Minor** (0.1.0) - New features, backward compatible
+- **Patch** (0.0.1) - Bug fixes, backward compatible
+
+### Release Notes Requirements
+
+Every release **must** include comprehensive release notes following this template:
+
+#### Release Notes Template
+
+Here's the complete template for release notes:
+
+```
+**# 🚀 Release v[VERSION] - [RELEASE_NAME]**
+
+**## 📝 Summary**
+Brief description of what this release contains and its significance.
+
+**## ✨ New Features**
+- **[Feature Name]**: Description of the new feature and how to use it
+  """typescript
+  // Code example if applicable
+  waveform.newMethod({ option: 'value' });
+  """
+- **[Another Feature]**: Description with relevant details
+
+**## 🔧 Improvements**
+- **[Component/Area]**: Description of the improvement
+- **Performance**: Specific performance improvements with metrics if available
+- **Developer Experience**: API improvements, better TypeScript support, etc.
+
+**## 🐛 Bug Fixes**
+- **[Issue Area]**: Description of the bug that was fixed
+- **[Component]**: Fix for specific component or functionality
+- **Memory leaks**: Any memory-related fixes
+
+**## 🔄 Changes**
+- **[API Change]**: Description of any API modifications (non-breaking)
+- **[Behavior Change]**: Any changes in default behavior
+- **[Deprecations]**: Features marked as deprecated (if any)
+
+**## 💥 Breaking Changes**
+> ⚠️ **Important**: This section is required for major version releases
+
+- **[Breaking Change 1]**:
+  - **What changed**: Description of the change
+  - **Migration**: How to update existing code
+  - **Reason**: Why the change was necessary
+
+  """typescript
+  // ❌ Before (deprecated)
+  waveform.oldMethod(param);
+
+  // ✅ After (new approach)
+  waveform.newMethod({ param: param });
+  """
+
+**## 📊 Performance**
+- **Render time**: X% improvement in rendering performance
+- **Memory usage**: X% reduction in memory footprint
+- **Bundle size**: Current minified+gzipped size (±X% from previous)
+
+**## 🧪 Testing**
+- **Test coverage**: X% (±X% from previous)
+- **New tests**: X new tests added
+- **Test improvements**: Any testing infrastructure improvements
+
+**## 📚 Documentation**
+- **New guides**: Links to new documentation sections
+- **API updates**: Updated API documentation sections
+- **Examples**: New code examples or tutorials
+
+**## 🔗 Links**
+- **[Full Changelog]**: https://github.com/maximux13/waveform-renderer/compare/v[PREV_VERSION]...v[VERSION]
+- **[GitHub Release]**: https://github.com/maximux13/waveform-renderer/releases/tag/v[VERSION]
+- **[NPM Package]**: https://www.npmjs.com/package/waveform-renderer/v/[VERSION]
+
+**## ⚡ Quick Migration Guide (for breaking changes)**
+1. **Update imports**: Any import changes required
+2. **Update API calls**: Method signature changes
+3. **Update configuration**: Configuration option changes
+4. **Test thoroughly**: Areas that need particular attention
+
+**## 🙏 Contributors**
+Thanks to all contributors who made this release possible:
+- [@username1](https://github.com/username1) - Feature implementation
+- [@username2](https://github.com/username2) - Bug fixes
+- [@username3](https://github.com/username3) - Documentation improvements
+
+---
+
+**Installation**: `npm install waveform-renderer@[VERSION]`
+**Documentation**: https://waveform-renderer.vercel.app
+```
+
+### Pre-Release Checklist
+
+Before running `pnpm release`, maintainers should verify:
+
+- [ ] **All tests passing** - `pnpm test` runs clean
+- [ ] **Build successful** - `pnpm build` completes without errors
+- [ ] **Documentation updated** - API docs reflect any changes
+- [ ] **Breaking changes documented** - Migration guide prepared
+- [ ] **Performance tested** - No significant regressions
+- [ ] **Examples working** - Sample code still functions
+- [ ] **Dependencies updated** - Security vulnerabilities addressed
+
+### Release Types
+
+#### Patch Release (1.0.1)
+
+- Bug fixes only
+- Performance improvements
+- Documentation updates
+- No API changes
+
+#### Minor Release (1.1.0)
+
+- New features (backward compatible)
+- New API methods/options
+- Deprecation warnings (if needed)
+- Feature enhancements
+
+#### Major Release (2.0.0)
+
+- Breaking changes
+- API redesigns
+- Removed deprecated features
+- Significant architectural changes
+
+### Post-Release Tasks
+
+After `np` completes the release:
+
+1. **Verify npm package** - Check package is available
+2. **Update documentation** - Deploy docs if needed
+3. **Announce release** - Social media, discussions
+4. **Monitor for issues** - Watch for bug reports
+5. **Update examples** - Ensure demo sites work with new version
+
+### Release Schedule
+
+- **Patch releases**: As needed for critical bugs
+- **Minor releases**: Monthly or bi-monthly
+- **Major releases**: Every 6-12 months or for significant changes
+
+### Emergency Releases
+
+For critical security fixes or major bugs:
+
+1. **Create hotfix branch** from latest release tag
+2. **Apply minimal fix** - Only address the critical issue
+3. **Fast-track release** - Skip normal review for urgency
+4. **Follow up** with proper testing in next regular release
+
+## 🤝 Community Guidelines
+
+### Code of Conduct
+
+We follow the [Contributor Covenant](https://www.contributor-covenant.org/) code of conduct. Be respectful, inclusive, and constructive in all interactions.
+
+### Getting Help
+
+- **GitHub Discussions** - General questions and community chat
+- **GitHub Issues** - Bug reports and feature requests
+- **Documentation** - Check docs first for API questions
+
+### Recognition
+
+Contributors are recognized in:
+
+- **Release notes** for significant contributions
+- **README contributors** section (if added)
+- **GitHub contributor insights**
+
+## 🔗 Useful Links
+
+- **Repository**: https://github.com/maximux13/waveform-renderer
+- **Issues**: https://github.com/maximux13/waveform-renderer/issues
+- **Discussions**: https://github.com/maximux13/waveform-renderer/discussions
+- **Documentation**: https://waveform-renderer.vercel.app
+- **NPM Package**: https://www.npmjs.com/package/waveform-renderer
+
+---
+
+Thank you for contributing to Waveform Renderer! Every contribution, no matter how small, helps make this project better for everyone. 🎉

@@ -1,0 +1,186 @@
+---
+title: Getting Started
+description: Learn how to quickly set up and use Waveform Renderer in your project
+---
+
+import InstallTabs from "../../components/InstallTabs.mdx";
+
+Get up and running with Waveform Renderer in just a few minutes. This guide will walk you through installation, basic setup, and your first waveform visualization.
+
+## Installation
+
+<InstallTabs />
+
+For additional setup options including TypeScript configuration and CDN usage, see the [complete installation guide](/installation/).
+
+## Basic Setup
+
+### 1. Prepare Your HTML
+
+Create a canvas element in your HTML where the waveform will be rendered:
+
+```html
+<canvas id="waveform" width="800" height="200"></canvas>
+<audio id="audio" controls>
+  <source src="path/to/your/audio.mp3" type="audio/mpeg" />
+</audio>
+```
+
+### 2. Load and Process Audio
+
+First, you need to load your audio file and extract peak data:
+
+```typescript
+import { WaveformRenderer, getPeaksFromAudioBuffer } from "waveform-renderer";
+
+// Create audio context
+const audioContext = new AudioContext();
+
+// Load audio file
+async function loadAudio(url: string) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // Extract peaks (1000 data points recommended for most use cases)
+  const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
+
+  return { audioBuffer, peaks };
+}
+```
+
+### 3. Create the Waveform
+
+Now create and configure your waveform renderer:
+
+```typescript
+// Get canvas element
+const canvas = document.getElementById("waveform") as HTMLCanvasElement;
+const audio = document.getElementById("audio") as HTMLAudioElement;
+
+// Load your audio
+const { peaks } = await loadAudio("path/to/your/audio.mp3");
+
+// Create waveform renderer with basic configuration
+const waveform = new WaveformRenderer(canvas, peaks, {
+  color: "#3b82f6", // Waveform color
+  backgroundColor: "#f1f5f9", // Background color
+  progressLine: {
+    color: "#ef4444", // Progress line color
+    width: 2, // Progress line width
+  },
+});
+
+// Listen for seek events
+waveform.on("seek", progress => {
+  audio.currentTime = progress * audio.duration;
+});
+
+// Update waveform progress when audio plays
+audio.addEventListener("timeupdate", () => {
+  const progress = audio.currentTime / audio.duration;
+  waveform.setProgress(progress);
+});
+```
+
+## Complete Example
+
+Here's a complete, working example:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Waveform Renderer Demo</title>
+  </head>
+  <body>
+    <canvas id="waveform" width="800" height="200"></canvas>
+    <audio id="audio" controls>
+      <source src="your-audio-file.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script type="module">
+      import { WaveformRenderer, getPeaksFromAudioBuffer } from "waveform-renderer";
+
+      async function init() {
+        const canvas = document.getElementById("waveform");
+        const audio = document.getElementById("audio");
+        const audioContext = new AudioContext();
+
+        // Load and process audio
+        const response = await fetch("your-audio-file.mp3");
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
+
+        // Create waveform
+        const waveform = new WaveformRenderer(canvas, peaks, {
+          color: "#3b82f6",
+          backgroundColor: "#f1f5f9",
+          progressLine: { color: "#ef4444" },
+        });
+
+        // Connect audio and waveform
+        waveform.on("seek", progress => {
+          audio.currentTime = progress * audio.duration;
+        });
+
+        audio.addEventListener("timeupdate", () => {
+          waveform.setProgress(audio.currentTime / audio.duration);
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
+```
+
+## Next Steps
+
+Now that you have a basic waveform working, you can:
+
+- **Customize the appearance**: Explore the full range of [configuration options](/api/#configuration-options)
+- **Handle events**: Learn about all available [events and interactions](/api/#events)
+- **Optimize performance**: Understand [caching and performance features](/api/#performance-tips)
+- **Advanced usage**: Discover [custom renderers and advanced features](/api/#advanced-rendering-methods)
+
+## Common Issues
+
+### Audio Context Restrictions
+
+Modern browsers require user interaction before creating an AudioContext:
+
+```typescript
+// Handle user interaction requirement
+document.addEventListener(
+  "click",
+  async () => {
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+  },
+  { once: true },
+);
+```
+
+### Canvas Sizing
+
+For responsive designs, update canvas size and re-render:
+
+```typescript
+function resizeCanvas() {
+  const container = canvas.parentElement;
+  canvas.width = container.clientWidth;
+  canvas.height = 200;
+  // Canvas resize is handled automatically by the renderer
+}
+
+window.addEventListener("resize", resizeCanvas);
+```
+
+## Try It Live
+
+Want to experiment with different configurations before implementing? Try our [Interactive Demo](/demo/) where you can upload your own audio files and customize the waveform in real-time.
+
+Need help? Check out our [API documentation](/api/) for complete reference.

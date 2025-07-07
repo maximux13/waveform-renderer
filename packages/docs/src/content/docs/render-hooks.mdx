@@ -1,0 +1,227 @@
+---
+title: Render Hooks
+description: Lightweight customization through hooks that extend the default rendering pipeline
+---
+
+Render hooks provide a lightweight way to customize waveform rendering by injecting custom logic at specific points during the default rendering pipeline. Unlike custom renderers, hooks extend the built-in rendering behavior rather than replacing it entirely.
+
+## Understanding Render Hooks
+
+Render hooks allow you to "hook into" the rendering process at predefined points:
+
+1. **`beforeRender`** - Called before any rendering begins
+2. **Default background rendering** - Library renders the background waveform
+3. **`afterBackground`** - Called after background is rendered
+4. **Default progress rendering** - Library renders progress overlay (if progress > 0)
+5. **`afterProgress`** - Called after progress is rendered
+6. **Default progress line rendering** - Library renders progress line
+7. **`afterComplete`** - Called when all rendering is complete
+
+## Interface Definition
+
+{/* prettier-ignore */}
+```typescript
+interface RenderHook {
+    beforeRender?: (
+        ctx: CanvasRenderingContext2D,
+        cache: RenderCache,
+        options: Required<WaveformOptions
+    ) => void;
+
+    afterBackground?: (
+        ctx: CanvasRenderingContext2D,
+        cache: RenderCache,
+        options: Required<WaveformOptions>
+    ) => void;
+
+    afterProgress?: (
+        ctx: CanvasRenderingContext2D,
+        cache: RenderCache,
+        options: Required<WaveformOptions>,
+        progress: number
+    ) => void;
+
+    afterComplete?: (
+        ctx: CanvasRenderingContext2D,
+        cache: RenderCache,
+        options: Required<WaveformOptions>
+    ) => void;
+}
+```
+
+## Basic Usage
+
+### Simple Overlay Example
+
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
+
+const waveform = new WaveformRenderer(canvas, peaks);
+
+waveform.setRenderHooks({
+  afterComplete: (ctx, cache, options) => {
+    // Add a simple watermark
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.font = "12px Arial";
+    ctx.fillText("Audio Player", 10, 20);
+  },
+});
+```
+
+### Progress Indicator
+
+```typescript
+waveform.setRenderHooks({
+  afterProgress: (ctx, cache, options, progress) => {
+    // Add a custom progress marker
+    const x = cache.canvasWidth * progress;
+
+    ctx.fillStyle = "#ff0000";
+    ctx.beginPath();
+    ctx.arc(x, cache.canvasHeight / 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+  },
+});
+```
+
+## Hook Management
+
+### Setting Hooks
+
+```typescript
+// Set new hooks
+waveform.setRenderHooks({
+  afterComplete: (ctx, cache, options) => {
+    // Custom rendering logic
+  },
+});
+```
+
+### Clearing Hooks
+
+```typescript
+// Remove all hooks
+waveform.clearRenderHooks();
+```
+
+### Conditional Hooks
+
+```typescript
+waveform.setRenderHooks({
+  afterProgress: (ctx, cache, options, progress) => {
+    // Only draw when progress is significant
+    if (progress > 0.1) {
+      this.drawProgressIndicator(ctx, cache, progress);
+    }
+  },
+
+  afterComplete: (ctx, cache, options) => {
+    // Different rendering based on options
+    if (options.position === "center") {
+      this.drawCenterAlignedOverlay(ctx, cache);
+    } else {
+      this.drawStandardOverlay(ctx, cache);
+    }
+  },
+});
+```
+
+## Hooks vs Custom Renderers
+
+| Aspect               | Render Hooks                          | Custom Renderers                   |
+| -------------------- | ------------------------------------- | ---------------------------------- |
+| **Purpose**          | Extend default rendering              | Replace default rendering          |
+| **Complexity**       | Lightweight, targeted changes         | Complete rendering control         |
+| **Default Behavior** | Preserves library's rendering         | Overrides library's rendering      |
+| **Use Cases**        | Adding overlays, effects, annotations | Complete visual redesign           |
+| **Performance**      | Minimal impact                        | Can optimize or impact performance |
+| **Maintenance**      | Library handles core updates          | Must maintain all rendering logic  |
+
+## When to Use Render Hooks
+
+**Perfect for:**
+
+- Adding overlays or annotations
+- Custom progress indicators
+- Visual effects on top of standard waveform
+- Debug visualizations
+- Watermarks or branding
+- Beat markers or time indicators
+- Real-time frequency analysis overlays
+
+**Not suitable for:**
+
+- Completely changing waveform visualization style
+- Implementing different rendering algorithms
+- Creating entirely new visual representations
+
+## Best Practices
+
+### Canvas State Management
+
+Always save and restore canvas state:
+
+```typescript
+afterBackground: (ctx, cache, options) => {
+  ctx.save();
+
+  try {
+    // Your custom rendering
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, 0, 100, 100);
+  } finally {
+    ctx.restore();
+  }
+};
+```
+
+### Performance Considerations
+
+Keep hooks lightweight:
+
+```typescript
+// ✅ Good - minimal processing
+afterProgress: (ctx, cache, options, progress) => {
+  const x = cache.canvasWidth * progress;
+  ctx.fillRect(x - 1, 0, 2, cache.canvasHeight);
+};
+
+// ❌ Avoid - heavy processing in hooks
+afterProgress: (ctx, cache, options, progress) => {
+  // Heavy calculations that could impact performance
+  for (let i = 0; i < 10000; i++) {
+    // Complex operations
+  }
+};
+```
+
+### Error Handling
+
+Wrap hook logic in try-catch:
+
+```typescript
+afterComplete: (ctx, cache, options) => {
+  try {
+    // Custom rendering logic
+    this.complexRenderingOperation(ctx, cache);
+  } catch (error) {
+    console.warn("Hook rendering failed:", error);
+    // Graceful fallback or skip
+  }
+};
+```
+
+## Available Parameters
+
+All hook functions receive:
+
+- **`ctx`** - Canvas rendering context for drawing operations
+- **`cache`** - Pre-computed rendering data including bar positions and dimensions
+- **`options`** - Complete waveform configuration options
+- **`progress`** - Current progress value (only in `afterProgress` hook)
+
+## Next Steps
+
+- See [Custom Renderers](/custom-renderers) for complete rendering control
+- Check [API Reference](/api) for detailed parameter documentation
+- Try the [Interactive Demo](/demo) to experiment with different hooks

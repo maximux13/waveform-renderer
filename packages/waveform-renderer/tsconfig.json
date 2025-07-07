@@ -5,7 +5,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "node"],
+    "types": ["node"],
     "declaration": true,
     "declarationDir": "dist",
     "listEmittedFiles": true
