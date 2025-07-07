@@ -1,4 +1,11 @@
-import type { DirtyFlags, ProgressLineOptions, WaveformEvents, WaveformOptions } from "@/types";
+import type {
+  CustomRenderer,
+  DirtyFlags,
+  ProgressLineOptions,
+  RenderHook,
+  WaveformEvents,
+  WaveformOptions,
+} from "@/types";
 
 import { DEFAULT_OPTIONS } from "@/constants";
 import { EventEmitter } from "@/events";
@@ -7,7 +14,7 @@ import { normalizePeaks, normalizeProgress, resizeCanvas, setupCanvasContext } f
 import { CacheManager } from "./cache-manager";
 import { DebugSystem } from "./debug-system";
 import { EventHandlerManager } from "./event-handler";
-import { RenderingEngine, type CustomRenderer, type RenderHook } from "./rendering-engine";
+import { RenderingEngine } from "./rendering-engine";
 
 export default class WaveformRenderer extends EventEmitter<WaveformEvents> {
   private readonly canvas!: HTMLCanvasElement;

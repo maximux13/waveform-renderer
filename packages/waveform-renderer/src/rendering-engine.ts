@@ -1,32 +1,14 @@
 import { drawProgressLine } from "@/utils";
 
-import type { CachedBarData, ProgressLineOptions, RenderCache, WaveformOptions } from "@/types";
-
-export interface RenderingCallbacks {
-  onRenderStart: () => void;
-  onRenderComplete: () => void;
-}
-
-export interface CustomRenderer {
-  render(
-    ctx: CanvasRenderingContext2D,
-    cache: RenderCache,
-    options: Required<WaveformOptions>,
-    staticPath?: Path2D,
-  ): boolean; // Return true if custom rendering handled everything
-}
-
-export interface RenderHook {
-  beforeRender?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
-  afterBackground?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
-  afterProgress?: (
-    ctx: CanvasRenderingContext2D,
-    cache: RenderCache,
-    options: Required<WaveformOptions>,
-    progress: number,
-  ) => void;
-  afterComplete?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
-}
+import type {
+  CachedBarData,
+  CustomRenderer,
+  ProgressLineOptions,
+  RenderCache,
+  RenderHook,
+  RenderingCallbacks,
+  WaveformOptions,
+} from "@/types";
 
 export class RenderingEngine {
   private ctx: CanvasRenderingContext2D;

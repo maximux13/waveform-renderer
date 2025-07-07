@@ -1,8 +1,16 @@
 export { default as WaveformRenderer } from "@/renderer";
 
-export type { ProgressLineOptions, RenderMode, WaveformEvents, WaveformOptions } from "@/types";
-
-export type { CustomRenderer, RenderHook } from "@/rendering-engine";
+export type {
+  ProgressLineOptions,
+  RenderMode,
+  WaveformEvents,
+  WaveformOptions,
+  CustomRenderer,
+  RenderHook,
+  RenderCache,
+  CachedBarData,
+  DebugInfo,
+} from "@/types";
 
 export { getPeaksFromAudioBuffer } from "@/utils/peaks";
 
