@@ -449,9 +449,68 @@ async function main() {
       newVersion = semver.inc(currentVersion, versionType);
     }
 
-    // Step 6: Final confirmation
+    // Step 6: Distribution tag selection
+    const isPrerelease = semver.prerelease(newVersion);
+    const suggestedTag = isPrerelease ? "beta" : "latest";
+
+    const tagChoices = [
+      { value: "latest", label: "latest - Stable release (default for users)" },
+      { value: "beta", label: "beta - Beta/preview release" },
+      { value: "next", label: "next - Next major version preview" },
+      { value: "alpha", label: "alpha - Alpha/experimental release" },
+      { value: "canary", label: "canary - Nightly/bleeding edge release" },
+      { value: "custom", label: "Custom tag..." },
+    ];
+
+    const distTag = await select({
+      message: `Select npm distribution tag (suggested: ${chalk.yellow(suggestedTag)}):`,
+      options: tagChoices,
+      initialValue: suggestedTag,
+    });
+
+    if (isCancel(distTag)) {
+      cancel("Release cancelled.");
+      process.exit(0);
+    }
+
+    let finalTag;
+
+    if (distTag === "custom") {
+      const customTag = await text({
+        message: "Enter custom tag:",
+        placeholder: "my-tag",
+        validate: value => {
+          if (!value || !/^[a-z0-9\-_]+$/i.test(value)) {
+            return "Tag must contain only letters, numbers, hyphens, and underscores";
+          }
+          if (["latest", "beta", "next", "alpha", "canary"].includes(value.toLowerCase())) {
+            return "Please use the predefined options for common tags";
+          }
+        },
+      });
+
+      if (isCancel(customTag)) {
+        cancel("Release cancelled.");
+        process.exit(0);
+      }
+
+      finalTag = customTag;
+    } else {
+      finalTag = distTag;
+    }
+
+    // Show tag explanation for non-latest tags
+    if (finalTag !== "latest") {
+      log.info(
+        chalk.yellow(`\n⚠️  Publishing with tag '${finalTag}' - users will need to specify the tag to install:`),
+      );
+      log.info(chalk.gray(`   npm install waveform-renderer@${finalTag}`));
+      log.info(chalk.gray(`   npm install waveform-renderer@${newVersion}`));
+    }
+
+    // Step 7: Final confirmation
     const shouldProceed = await confirm({
-      message: `Release version ${chalk.green(newVersion)}?`,
+      message: `Release version ${chalk.green(newVersion)} with tag ${chalk.cyan(finalTag)}?`,
       initialValue: true,
     });
 
@@ -479,7 +538,9 @@ async function main() {
 
     try {
       await execaOrLog("Add files to git", "git", ["add", PACKAGE_PATH]);
-      await execaOrLog("Create commit", "git", ["commit", "-m", `chore(release): v${newVersion}`]);
+      const commitMessage =
+        finalTag === "latest" ? `chore(release): v${newVersion}` : `chore(release): v${newVersion} [${finalTag}]`;
+      await execaOrLog("Create commit", "git", ["commit", "-m", commitMessage]);
       await execaOrLog("Create git tag", "git", ["tag", `v${newVersion}`]);
       s.stop("Git commit and tag: ✓");
     } catch (_error) {
@@ -493,11 +554,16 @@ async function main() {
     s.start("Publishing to npm...");
 
     try {
-      await execaOrLog("Publish to npm", "pnpm", ["--filter", "waveform-renderer", "publish", "--access", "public"], {
-        cwd: process.cwd(),
-        stdio: "pipe",
-      });
-      s.stop("Published to npm: ✓");
+      await execaOrLog(
+        `Publish to npm with tag '${finalTag}'`,
+        "pnpm",
+        ["--filter", "waveform-renderer", "publish", "--access", "public", "--tag", finalTag],
+        {
+          cwd: process.cwd(),
+          stdio: "pipe",
+        },
+      );
+      s.stop(`Published to npm with tag '${finalTag}': ✓`);
     } catch (_error) {
       s.stop("Publishing failed: ✗");
 
@@ -561,11 +627,17 @@ async function main() {
     }
 
     if (isDryRun) {
-      outro(chalk.blue(`🔍 Dry run completed! Release v${newVersion} would be published.`));
+      outro(chalk.blue(`🔍 Dry run completed! Release v${newVersion} with tag '${finalTag}' would be published.`));
       log.info(chalk.yellow("\n💡 To perform the actual release, run without --dry-run flag:"));
       log.info(chalk.gray("   pnpm release:lib"));
     } else {
-      outro(chalk.green(`✨ Successfully released waveform-renderer v${newVersion}!`));
+      outro(chalk.green(`✨ Successfully released waveform-renderer v${newVersion} with tag '${finalTag}'!`));
+
+      if (finalTag !== "latest") {
+        log.info(chalk.cyan(`\n📦 Package published with tag '${finalTag}'. Install with:`));
+        log.info(chalk.gray(`   npm install waveform-renderer@${finalTag}`));
+        log.info(chalk.gray(`   npm install waveform-renderer@${newVersion}`));
+      }
     }
   } catch (error) {
     outro(chalk.red(`❌ Release failed: ${error.message}`));
