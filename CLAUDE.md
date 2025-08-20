@@ -56,6 +56,12 @@ pnpm format
 
 # Run test coverage for all packages
 pnpm test:coverage
+
+# Release library to npm (interactive)
+pnpm release:lib
+
+# Preview release without making changes
+pnpm release:lib --dry-run
 ```
 
 ## Architecture Overview
@@ -146,6 +152,51 @@ The project uses Vitest for testing with comprehensive coverage. Tests are locat
 - **RAF scheduling**: Use `requestAnimationFrame` for rendering operations
 - **Event throttling**: Debounce expensive operations (16ms minimum render interval)
 - **Memory management**: Proper cleanup of event listeners and resources
+
+## Release Process
+
+The project includes a custom release script (`scripts/release.js`) that emulates the best features of `np` but is optimized for this monorepo structure.
+
+### Release Commands
+```bash
+# Interactive release process
+pnpm release:lib
+
+# Preview release without making changes (recommended first)
+pnpm release:lib --dry-run
+```
+
+### Release Flow
+1. **Repository checks** - Ensures clean working directory and correct branch
+2. **Tests and linting** - Runs full test suite and lint checks
+3. **Build** - Compiles the library
+4. **Package preview** - Shows table of files to be published with status indicators:
+   - ✨ **NEW** - Files added since last release
+   - 📝 **MODIFIED** - Files changed since last release  
+   - 🔄 **UNCHANGED** - Files with no changes
+   - ⚠️ **INCLUDED** - Potentially unnecessary files (src/, test/)
+5. **Version selection** - Interactive choice of version bump (patch/minor/major/custom)
+6. **Confirmation** - Final approval before publishing
+7. **Version update** - Updates package.json
+8. **Git operations** - Creates commit and tag
+9. **NPM publish** - Publishes to npm registry
+10. **GitHub push** - Pushes changes and tags
+11. **Release notes** - Optional GitHub release creation
+
+### File Status Indicators
+The package preview shows file status compared to the last git tag:
+- 📦 `dist/` files - Distribution/build outputs
+- 📝 `.d.ts` files - TypeScript definitions
+- 📋 `.json` files - Configuration files
+- 📖 `.md` files - Documentation
+- ⚠️ `src/` files - Source code (usually shouldn't be published)
+
+### Dry Run Mode
+Always test releases first with `--dry-run` mode:
+- Shows all commands that would be executed
+- Previews package contents without publishing
+- No changes made to git or npm
+- Perfect for verifying release configuration
 
 ## Documentation
 

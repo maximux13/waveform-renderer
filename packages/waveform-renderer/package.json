@@ -26,7 +26,6 @@
     "README.md",
     "LICENSE.md",
     "CHANGELOG.md",
-    "src",
     "package.json"
   ],
   "homepage": "https://github.com/maximux13/waveform-renderer#readme",

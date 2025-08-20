@@ -240,12 +240,45 @@ Guidelines:
 
 ## Releases
 
-Handled by maintainers with [`np`](https://github.com/sindresorhus/np).
+Handled by maintainers using a custom release script optimized for this monorepo.
+
+### Release Commands
+
+```bash
+# Interactive release process
+pnpm release:lib
+
+# Preview release without making changes (recommended first)
+pnpm release:lib --dry-run
+```
+
+### Release Process
+
+The custom release script includes:
+
+1. **Repository checks** - Ensures clean working directory
+2. **Tests and linting** - Full test suite and lint checks
+3. **Build** - Compiles the library
+4. **Package preview** - Shows files to be published with status:
+   - ✨ **NEW** - Files added since last release
+   - 📝 **MODIFIED** - Files changed since last release  
+   - 🔄 **UNCHANGED** - Files with no changes
+   - ⚠️ **INCLUDED** - Potentially unnecessary files
+5. **Version selection** - Interactive choice (patch/minor/major/custom)
+6. **Confirmation** - Final approval before publishing
+7. **Git operations** - Creates commit and tag
+8. **NPM publish** - Publishes to npm registry
+9. **GitHub push** - Pushes changes and tags
+
+### Versioning
+
 Follow [Semantic Versioning](https://semver.org/):
 
 * **Major** → Breaking changes
 * **Minor** → Features (backward compatible)
 * **Patch** → Fixes, docs, perf
+
+Always test releases first with `--dry-run` mode to preview changes without publishing.
 
 ---
 
