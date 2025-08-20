@@ -277,10 +277,10 @@ export default function WaveformPreviewer() {
   const progressPercent = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
 
   return (
-    <div className="p-6 flex items-center justify-center not-content">
+    <div className="flex items-center justify-center not-content">
       <div className="w-full max-w-4xl">
         {/* Main Player Card */}
-        <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700 mb-6">
           {/* File Upload Section */}
           <div className="mb-6">
             <span className="block text-gray-700 dark:text-gray-300 font-medium mb-3">Audio File:</span>
@@ -296,10 +296,12 @@ export default function WaveformPreviewer() {
                 />
 
                 <div className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer py-4">
-                  <div className="text-center">
-                    <IconMusicUp class="size-14 text-gray-400 dark:text-gray-500 stroke-1" />
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload an audio file</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                  <div className="text-center px-4">
+                    <IconMusicUp class="size-12 sm:size-14 text-gray-400 dark:text-gray-500 stroke-1" />
+                    <p className="text-gray-600 dark:text-gray-300 font-medium text-sm sm:text-base">
+                      Click to upload an audio file
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1">
                       Supports MP3, WAV, OGG, and other audio formats
                     </p>
                   </div>
@@ -361,8 +363,8 @@ export default function WaveformPreviewer() {
             {!state.audioFile && !state.isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
                 <div className="text-center text-gray-500 dark:text-gray-400">
-                  <IconWaveSine class="size-12 mx-auto mb-2 stroke-1" />
-                  <p>Upload an audio file to see the waveform</p>
+                  <IconWaveSine class="size-14 mx-auto text-gray-400 dark:text-gray-500 stroke-1" />
+                  <p class="text-xs sm:text-sm">Upload an audio file to see the waveform</p>
                 </div>
               </div>
             )}
@@ -419,10 +421,10 @@ export default function WaveformPreviewer() {
         </div>
 
         {/* Settings Card */}
-        <div className="bg-white dark:bg-gray-900 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 backdrop-blur-xl rounded-3xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <button
             onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-            className="w-full p-6 text-left bg-gray-50/50 hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 transition-colors flex items-center justify-between"
+            className="w-full p-6 text-left bg-gray-50/50 hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 transition-colors flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center">
               <div className="flex items-center text-white bg-gradient-to-r from-lime-500 to-lime-600 dark:from-lime-600 dark:to-lime-700 p-3 rounded-xl mr-4 shrink-0 aspect-square size-10">
@@ -444,7 +446,7 @@ export default function WaveformPreviewer() {
             } overflow-hidden`}
           >
             <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Waveform Options */}
                 <div className="space-y-6">
                   <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
