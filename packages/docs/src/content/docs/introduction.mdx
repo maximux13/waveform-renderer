@@ -1,77 +1,94 @@
 ---
 title: Introduction
-description: Waveform Renderer is a high-performance, lightweight TypeScript library designed specifically for rendering audio waveforms on HTML5 Canvas. It provides developers with a powerful yet simple tool for creating beautiful, interactive audio visualizations.
+description: Waveform Renderer is a high-performance, lightweight TypeScript library for rendering audio waveforms on HTML5 Canvas. It provides developers with a simple yet powerful tool to create beautiful, interactive audio visualizations.
 ---
 
 ## What is Waveform Renderer?
 
-Waveform Renderer focuses solely on waveform visualization, making it a lean alternative to full-featured audio libraries. It's built with modern web standards and provides:
+Waveform Renderer is a specialized library focused exclusively on **waveform visualization**. Unlike full-featured audio libraries, it keeps things lean and efficient while embracing modern web standards.
 
-- **Pure rendering focus** - No audio playback, just visualization
-- **Canvas-based** - Hardware-accelerated rendering with smooth animations
-- **TypeScript-first** - Built from the ground up with type safety
-- **Zero dependencies** - Lightweight and fast to load
+Key characteristics:
+- **Pure rendering focus** – No audio playback, only visualization
+- **Canvas-based** – Hardware-accelerated rendering with smooth animations
+- **TypeScript-first** – Built from the ground up with type safety
+- **Zero dependencies** – Lightweight and fast to load
+
+---
 
 ## Key Benefits
 
-### Performance First
-
-- Intelligent caching system prevents unnecessary re-renders
-- Optimized algorithms for handling large audio datasets
+### ⚡ Performance First
+- Intelligent caching to avoid unnecessary re-renders
+- Optimized algorithms for large audio datasets
 - Smart canvas management with pixel ratio handling
-- Frame-rate optimized animations
+- Frame-rate–friendly animations for smooth playback
 
-### Developer Experience
+### 💻 Developer Experience
+- Full TypeScript support with complete type definitions
+- Intuitive, easy-to-learn API
+- Clear documentation with practical examples
+- 200+ unit tests ensuring reliability
 
-- Comprehensive TypeScript support with full type definitions
-- Intuitive API design that's easy to learn and use
-- Extensive documentation with practical examples
-- 231 unit tests ensuring reliability
-
-### Highly Customizable
-
-- Complete control over visual appearance
-- Advanced customization through render hooks
-- Custom renderer support for unique requirements
+### 🎨 Highly Customizable
+- Full control over visual appearance
+- Advanced customization via render hooks
+- Support for custom renderers to fit unique needs
 - Responsive design with automatic resizing
+
+---
 
 ## When to Use Waveform Renderer
 
-Waveform Renderer is perfect when you need:
-
+Choose Waveform Renderer if you need:
 - **Audio visualization** in music players or audio editors
-- **Waveform displays** for podcasts or voice recordings
-- **Interactive audio** interfaces with seek functionality
-- **Custom audio visualizations** with specific design requirements
-- **Performance-critical** applications where speed matters
+- **Waveform displays** for podcasts and voice recordings
+- **Interactive audio UIs** with seek functionality
+- **Custom visualizations** tailored to your design system
+- **Performance-critical solutions** where speed is essential
+
+---
 
 ## Architecture Overview
 
-The library follows a modular architecture:
+The library is built on a **modular architecture**:
+- **Renderer** – Core component managing the canvas and interactions
+- **RenderingEngine** – Handles drawing and performance optimizations
+- **Hooks system** – Provides customization points for developers
 
-- **Renderer** - Main component managing canvas and user interactions
-- **RenderingEngine** - Core drawing operations and optimizations
-- **CacheManager** - Intelligent caching for performance
-- **DebugSystem** - Performance monitoring and logging
-- **EventHandler** - User interaction management
+---
 
-This design ensures maintainability, testability, and extensibility while keeping the API simple and intuitive.
+## ✅ Verification
 
-## Browser Support
+After installation, you can quickly verify that Waveform Renderer is working with a minimal example:
 
-Waveform Renderer works in all modern browsers that support:
+```typescript
+import { WaveformRenderer } from "waveform-renderer";
 
-- Canvas API (all modern browsers)
-- ES6+ features
-- Web Audio API (for audio processing utilities)
+// Create a canvas element
+const canvas = document.createElement("canvas");
+canvas.width = 600;
+canvas.height = 200;
+document.body.appendChild(canvas);
 
-Specifically tested on:
+// Example mock peak data
+const mockPeaks = new Array(200).fill(0).map((_, i) => Math.sin(i / 10));
 
-- Chrome 88+
-- Firefox 78+
-- Safari 14+
-- Edge 88+
+// Initialize the renderer
+const renderer = new WaveformRenderer(canvas, mockPeaks, {
+  color: "#3b82f6",
+});
 
-## Next Steps
+// You should now see a simple waveform on the canvas 🎉
+````
 
-Ready to get started? Try our [Interactive Demo](/demo/) to see Waveform Renderer in action, check out the [Installation](/installation/) guide to add it to your project, or dive into the [Getting Started](/getting-started/) tutorial.
+If the waveform appears, your setup is complete.
+
+---
+
+## 🚀 Next Steps
+
+Now that you’ve confirmed your installation works, continue with:
+
+* **Getting Started** → Learn the basics of setup and your first visualization in the [quickstart guide](/getting-started/).
+* **Installation Options** → Explore advanced installation details including [TypeScript configuration and CDN usage](/installation/).
+* **API Reference** → Dive into the [full API documentation](/api/) to explore configuration, events, and customization.

@@ -3,7 +3,7 @@ title: Advanced Rendering
 description: Extend and customize waveform visualization with custom renderers and render hooks
 ---
 
-Waveform Renderer provides two powerful mechanisms for customizing the visualization beyond the standard options: **Custom Renderers** and **Render Hooks**.
+Waveform Renderer provides two main mechanisms for customizing visualization beyond the standard options: **Custom Renderers** and **Render Hooks**.
 
 ## Choose Your Approach
 
@@ -11,12 +11,12 @@ Waveform Renderer provides two powerful mechanisms for customizing the visualiza
 
 **Complete control over waveform visualization**
 
-Use custom renderers when you need to completely change how the waveform is drawn. Perfect for creating entirely new visualization styles or implementing complex rendering algorithms.
+Use custom renderers when you need to fully redefine how the waveform is drawn. Ideal for creating entirely new visualization styles or implementing complex rendering algorithms.
 
 - Replace the entire rendering pipeline
 - Full control over canvas operations
 - Advanced caching and optimization
-- Complex visual effects
+- Support for complex visual effects
 
 [**📖 Learn about Custom Renderers →**](/custom-renderers)
 
@@ -33,7 +33,7 @@ Use custom renderers when you need to completely change how the waveform is draw
 
 **Lightweight extensions to the default rendering**
 
-Use render hooks when you want to add custom elements on top of the standard waveform rendering. Perfect for overlays, annotations, and visual effects.
+Use render hooks when you want to add extra elements on top of the standard waveform rendering. Perfect for overlays, annotations, and visual effects.
 
 - Extend the default rendering pipeline
 - Hook into specific rendering phases
@@ -75,7 +75,7 @@ import { MyCustomRenderer } from "./my-custom-renderer";
 const customRenderer = new MyCustomRenderer();
 const waveform = new WaveformRenderer(canvas, peaks);
 waveform.setCustomRenderer(customRenderer);
-```
+````
 
 [**📖 Full Custom Renderer Guide →**](/custom-renderers)
 
@@ -98,15 +98,15 @@ waveform.setRenderHooks({
 
 [**📖 Full Render Hooks Guide →**](/render-hooks)
 
+## Need Help?
+
+* Check the [API Reference](/api) for complete method documentation
+* Try the [Interactive Demo](/demo) to see examples in action
+* Look at framework-specific guides like [React Integration](/react-integration)
+
 ## Next Steps
 
 1. **Choose your approach** based on your customization needs
 2. **Follow the detailed guides** for implementation examples
-3. **Experiment** with the interactive demo to see different techniques
-4. **Combine approaches** - use both custom renderers and hooks together
-
-## Need Help?
-
-- Check the [API Reference](/api) for complete method documentation
-- Try the [Interactive Demo](/demo) to see examples in action
-- Look at framework-specific guides like [React Integration](/react-integration)
+3. **Experiment** with the interactive demo to explore techniques
+4. **Combine approaches** – use both custom renderers and hooks together

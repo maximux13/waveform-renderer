@@ -1,6 +1,6 @@
 ---
 title: React & Preact Integration
-description: Simple guide for integrating Waveform Renderer with React and Preact applications
+description: Guide for integrating Waveform Renderer with React and Preact applications
 ---
 
 import InstallTabs from "../../components/InstallTabs.mdx";
@@ -9,11 +9,11 @@ import InstallTabs from "../../components/InstallTabs.mdx";
 
 <InstallTabs />
 
-For more installation options and setup details, see the [complete installation guide](/installation/).
+For more installation options and setup details, see the [installation guide](/installation/).
 
 ## Basic Integration
 
-Most commonly, you'll have peaks data already available from your backend. Here's how to create a basic waveform:
+Most commonly, you'll have peaks data available from your backend. Here's how to create a basic waveform:
 
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 
@@ -36,7 +36,6 @@ export function Waveform({ peaks, className }: WaveformProps) {
   useEffect(() => {
     if (!canvasRef.current || !peaks.length) return;
 
-    // Create waveform renderer
     const waveform = new WaveformRenderer(canvasRef.current, peaks, {
       color: "#2196F3",
       backgroundColor: "#E3F2FD",
@@ -46,12 +45,10 @@ export function Waveform({ peaks, className }: WaveformProps) {
 
     waveformRef.current = waveform;
 
-    // Handle clicks for seeking
     waveform.on("seek", progress => {
       console.log(`Seeked to ${(progress * 100).toFixed(1)}%`);
     });
 
-    // Cleanup
     return () => {
       waveform.destroy();
       waveformRef.current = null;
@@ -64,7 +61,7 @@ export function Waveform({ peaks, className }: WaveformProps) {
     </div>
   );
 }
-```
+````
 
 </TabItem>
 <TabItem label="Preact">
@@ -85,7 +82,6 @@ export function Waveform({ peaks, className }: WaveformProps) {
   useEffect(() => {
     if (!canvasRef.current || !peaks.length) return;
 
-    // Create waveform renderer
     const waveform = new WaveformRenderer(canvasRef.current, peaks, {
       color: "#2196F3",
       backgroundColor: "#E3F2FD",
@@ -95,12 +91,10 @@ export function Waveform({ peaks, className }: WaveformProps) {
 
     waveformRef.current = waveform;
 
-    // Handle clicks for seeking
     waveform.on("seek", progress => {
       console.log(`Seeked to ${(progress * 100).toFixed(1)}%`);
     });
 
-    // Cleanup
     return () => {
       waveform.destroy();
       waveformRef.current = null;
@@ -120,8 +114,6 @@ export function Waveform({ peaks, className }: WaveformProps) {
 
 ## Usage Example
 
-Here's how to use the Waveform component with peaks data:
-
 <Tabs>
 <TabItem label="React">
 
@@ -129,7 +121,6 @@ Here's how to use the Waveform component with peaks data:
 import { Waveform } from "./components/Waveform";
 
 function App() {
-  // Peaks data from your API or pre-calculated
   const peaks = [0.1, 0.3, 0.8, 0.5, 0.2, 0.9, 0.4, 0.7, 0.1, 0.6];
 
   return (
@@ -150,7 +141,6 @@ export default App;
 import { Waveform } from "./components/Waveform";
 
 function App() {
-  // Peaks data from your API or pre-calculated
   const peaks = [0.1, 0.3, 0.8, 0.5, 0.2, 0.9, 0.4, 0.7, 0.1, 0.6];
 
   return (
@@ -169,29 +159,26 @@ export default App;
 
 ## Key Integration Points
 
-### 1. Canvas Reference
+### Canvas Reference
 
-- Use `useRef` to get a reference to the canvas element
-- Pass this reference to the WaveformRenderer constructor
+* Use `useRef` for the canvas element and pass it to the `WaveformRenderer`.
 
-### 2. Peaks Data
+### Peaks Data
 
-- Most commonly, use pre-calculated peaks from your backend/API
-- For real-time processing, use `getPeaksFromAudioBuffer()` with Web Audio API
+* Prefer pre-calculated peaks from your backend or API.
+* For real-time processing, use `getPeaksFromAudioBuffer()` with Web Audio API.
 
-### 3. Event Handling
+### Event Handling
 
-- Listen to waveform events like `ready`, `seek`, and `error`
-- Handle loading states appropriately
+* Listen to `ready`, `seek`, and `error` events.
+* Manage loading states when working with audio.
 
-### 4. Cleanup
+### Cleanup
 
-- Always call `destroy()` in the cleanup function to prevent memory leaks
-- Clear the waveform reference after destruction
+* Call `destroy()` in cleanup functions.
+* Reset waveform references after destruction.
 
 ## Styling
-
-Add CSS to ensure proper canvas sizing:
 
 ```css
 .waveform-canvas {
@@ -204,8 +191,6 @@ Add CSS to ensure proper canvas sizing:
 
 ## TypeScript Support
 
-The library includes full TypeScript support. Import types as needed:
-
 ```tsx
 import type { WaveformOptions, WaveformEvents } from "waveform-renderer";
 ```
@@ -213,8 +198,6 @@ import type { WaveformOptions, WaveformEvents } from "waveform-renderer";
 Both React and Preact implementations are nearly identical, with the main difference being the import path for hooks (`react` vs `preact/hooks`).
 
 ## Adding Audio Playback
-
-To sync waveform with audio playback, add progress tracking:
 
 <Tabs>
 <TabItem label="React">
@@ -245,7 +228,6 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
 
     waveformRef.current = waveform;
 
-    // Handle seek clicks
     waveform.on("seek", progress => {
       if (audioRef.current) {
         audioRef.current.currentTime = progress * audioRef.current.duration;
@@ -255,7 +237,6 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
     return () => waveform.destroy();
   }, [peaks]);
 
-  // Update progress during playback
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -274,12 +255,7 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
+    isPlaying ? audio.pause() : audio.play();
     setIsPlaying(!isPlaying);
   };
 
@@ -322,7 +298,6 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
 
     waveformRef.current = waveform;
 
-    // Handle seek clicks
     waveform.on("seek", progress => {
       if (audioRef.current) {
         audioRef.current.currentTime = progress * audioRef.current.duration;
@@ -332,7 +307,6 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
     return () => waveform.destroy();
   }, [peaks]);
 
-  // Update progress during playback
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -351,12 +325,7 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
+    isPlaying ? audio.pause() : audio.play();
     setIsPlaying(!isPlaying);
   };
 
@@ -375,8 +344,6 @@ export function AudioPlayer({ peaks, audioUrl }: AudioPlayerProps) {
 
 ## Advanced: Real-time Audio Processing
 
-For real-time peak extraction from audio files (useful when peaks aren't pre-calculated):
-
 <Tabs>
 <TabItem label="React">
 
@@ -392,41 +359,29 @@ export function RealtimeWaveform({ audioUrl }: { audioUrl: string }) {
   useEffect(() => {
     const loadAndRender = async () => {
       if (!canvasRef.current) return;
-
       try {
         setIsLoading(true);
-
-        // Fetch and decode audio
         const audioContext = new AudioContext();
         const response = await fetch(audioUrl);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        // Extract peaks in real-time
         const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
-
-        // Create waveform
         const waveform = new WaveformRenderer(canvasRef.current, peaks, {
           color: "#2196F3",
           backgroundColor: "#E3F2FD",
         });
-
         waveformRef.current = waveform;
-        setIsLoading(false);
       } catch (error) {
         console.error("Failed to process audio:", error);
+      } finally {
         setIsLoading(false);
       }
     };
-
     loadAndRender();
     return () => waveformRef.current?.destroy();
   }, [audioUrl]);
 
-  if (isLoading) {
-    return <div>Processing audio...</div>;
-  }
-
+  if (isLoading) return <div>Processing audio...</div>;
   return <canvas ref={canvasRef} style={{ width: "100%", height: "120px" }} />;
 }
 ```
@@ -446,41 +401,29 @@ export function RealtimeWaveform({ audioUrl }: { audioUrl: string }) {
   useEffect(() => {
     const loadAndRender = async () => {
       if (!canvasRef.current) return;
-
       try {
         setIsLoading(true);
-
-        // Fetch and decode audio
         const audioContext = new AudioContext();
         const response = await fetch(audioUrl);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        // Extract peaks in real-time
         const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
-
-        // Create waveform
         const waveform = new WaveformRenderer(canvasRef.current, peaks, {
           color: "#2196F3",
           backgroundColor: "#E3F2FD",
         });
-
         waveformRef.current = waveform;
-        setIsLoading(false);
       } catch (error) {
         console.error("Failed to process audio:", error);
+      } finally {
         setIsLoading(false);
       }
     };
-
     loadAndRender();
     return () => waveformRef.current?.destroy();
   }, [audioUrl]);
 
-  if (isLoading) {
-    return <div>Processing audio...</div>;
-  }
-
+  if (isLoading) return <div>Processing audio...</div>;
   return <canvas ref={canvasRef} style={{ width: "100%", height: "120px" }} />;
 }
 ```
@@ -490,13 +433,13 @@ export function RealtimeWaveform({ audioUrl }: { audioUrl: string }) {
 
 ## Common Issues
 
-**Canvas not rendering?** Ensure explicit dimensions:
+**Canvas not rendering?**
 
 ```tsx
 <canvas style={{ width: "100%", height: "120px" }} />
 ```
 
-**Memory leaks?** Always cleanup:
+**Memory leaks?**
 
 ```tsx
 useEffect(() => {
@@ -504,7 +447,7 @@ useEffect(() => {
 }, []);
 ```
 
-**Audio context suspended?** Resume on user interaction:
+**Audio context suspended?**
 
 ```tsx
 const audioContext = new AudioContext();
@@ -515,6 +458,6 @@ if (audioContext.state === "suspended") {
 
 ## Next Steps
 
-- See [API Reference](/api) for all configuration options
-- Check [Custom Renderers](/advanced-rendering) for advanced visualizations
-- Try the [Interactive Demo](/demo) to experiment with settings
+* Explore the [API Reference](/api) for full configuration
+* Check [Custom Renderers](/advanced-rendering) for advanced use cases
+* Try the [Interactive Demo](/demo) to experiment live
