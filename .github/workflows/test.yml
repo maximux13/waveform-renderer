@@ -30,7 +30,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
-        version: 9
+        version: 10.12.4
 
     - name: Get pnpm store directory
       shell: bash
@@ -49,10 +49,10 @@ jobs:
       run: pnpm install --frozen-lockfile
 
     - name: Check TypeScript types
-      run: pnpm run type-check
+      run: pnpm --filter waveform-renderer type-check
 
     - name: Run linter (oxlint)
-      run: pnpm run lint
+      run: pnpm oxlint ./packages/waveform-renderer
 
     - name: Run tests
-      run: pnpm run test
+      run: pnpm --filter waveform-renderer test

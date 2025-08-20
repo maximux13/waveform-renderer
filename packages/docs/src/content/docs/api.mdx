@@ -1,0 +1,468 @@
+---
+title: API Reference
+description: Complete API documentation for Waveform Renderer
+---
+
+Comprehensive reference for all classes, methods, events, and configuration options available in **Waveform Renderer**.
+
+## WaveformRenderer Class
+
+The primary class for creating and managing waveform visualizations.
+
+### Constructor
+
+```typescript
+new WaveformRenderer(canvas: HTMLCanvasElement, peaks: number[], options?: Partial<WaveformOptions>)
+````
+
+**Parameters:**
+
+* `canvas` — The HTML `<canvas>` element where the waveform will be rendered.
+* `peaks` — Array of peak values (usually generated with `getPeaksFromAudioBuffer()`).
+* `options` — Optional configuration object.
+
+**Example:**
+
+```typescript
+const canvas = document.getElementById("waveform") as HTMLCanvasElement;
+const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
+const waveform = new WaveformRenderer(canvas, peaks, {
+  color: "#3b82f6",
+  backgroundColor: "#f1f5f9",
+});
+```
+
+### Core Methods
+
+#### `destroy(): void`
+
+Destroys the renderer instance, removing all event listeners and freeing resources.
+
+```typescript
+waveform.destroy();
+```
+
+#### `setOptions(options: Partial<WaveformOptions>): void`
+
+Updates the renderer configuration. Only provide the options you want to change.
+
+```typescript
+waveform.setOptions({
+  color: "#ff6b6b",
+  barWidth: 3,
+  gap: 2,
+});
+```
+
+#### `setPeaks(peaks: number[]): void`
+
+Replaces the current peaks with new data and triggers a re-render. Useful when loading a new audio file.
+
+```typescript
+const newPeaks = getPeaksFromAudioBuffer(newAudioBuffer, 1000);
+waveform.setPeaks(newPeaks);
+```
+
+#### `setProgress(progress: number): void`
+
+Updates the playback progress. Accepts a value between `0` and `1`.
+
+```typescript
+// Set progress to 50%
+waveform.setProgress(0.5);
+
+// Sync with an <audio> element
+audio.addEventListener("timeupdate", () => {
+  waveform.setProgress(audio.currentTime / audio.duration);
+});
+```
+
+#### `setProgressLineOptions(options: null | Partial<ProgressLineOptions>): void`
+
+Updates the progress line configuration or disables it entirely.
+
+```typescript
+// Update progress line
+waveform.setProgressLineOptions({
+  color: "#ff0000",
+  width: 3,
+  style: "dashed",
+});
+
+// Disable progress line
+waveform.setProgressLineOptions(null);
+```
+
+### Debug Methods
+
+#### `setDebug(enabled: boolean): void`
+
+Enables or disables debug mode with performance logging.
+
+```typescript
+waveform.setDebug(true); // Enable debug
+waveform.setDebug(false); // Disable debug
+```
+
+#### `getDebugInfo(): DebugInfo`
+
+Returns detailed information about performance and internal state.
+
+```typescript
+const debugInfo = waveform.getDebugInfo();
+console.log("Render time:", debugInfo.performance.lastRenderTime);
+console.log("FPS:", debugInfo.performance.fps);
+console.log("Canvas size:", debugInfo.state.canvasSize);
+```
+
+#### `resetDebugCounters(): void`
+
+Resets all debug counters to their initial state.
+
+```typescript
+waveform.resetDebugCounters();
+```
+
+### Advanced Rendering Methods
+
+#### `setCustomRenderer(renderer?: CustomRenderer): void`
+
+Defines a custom renderer for full control over the rendering pipeline.
+
+```typescript
+waveform.setCustomRenderer({
+  render(ctx, cache, options, staticPath) {
+    // Custom rendering logic
+    ctx.fillStyle = "linear-gradient(...)";
+    // Custom drawing code...
+    return true; // Return true if fully handled
+  },
+});
+
+// Remove custom renderer
+waveform.setCustomRenderer();
+```
+
+#### `setRenderHooks(hooks: RenderHook): void`
+
+Adds hooks to extend the default rendering pipeline.
+
+```typescript
+waveform.setRenderHooks({
+  beforeRender: (ctx, cache, options) => {
+    // Called before rendering starts
+  },
+  afterBackground: (ctx, cache, options) => {
+    // After background is drawn
+  },
+  afterProgress: (ctx, cache, options, progress) => {
+    // After progress line is drawn
+  },
+  afterComplete: (ctx, cache, options) => {
+    // When rendering finishes
+  },
+});
+```
+
+#### `clearRenderHooks(): void`
+
+Removes all active render hooks.
+
+```typescript
+waveform.clearRenderHooks();
+```
+
+## Events
+
+The renderer extends `EventEmitter` and emits the following events.
+
+### Event Types
+
+```typescript
+interface WaveformEvents {
+  destroy: void;
+  error: Error;
+  progressChange: number;
+  ready: void;
+  renderComplete: void;
+  renderStart: void;
+  resize: { width: number; height: number };
+  seek: number;
+}
+```
+
+### Event Listeners
+
+#### `ready`
+
+Triggered when the renderer is fully initialized.
+
+```typescript
+waveform.on("ready", () => {
+  console.log("Waveform is ready!");
+});
+```
+
+#### `seek`
+
+Triggered when the user seeks by clicking on the waveform. Provides a progress value (`0–1`).
+
+```typescript
+waveform.on("seek", progress => {
+  audio.currentTime = progress * audio.duration;
+});
+```
+
+#### `progressChange`
+
+Triggered whenever progress is updated with `setProgress()`.
+
+```typescript
+waveform.on("progressChange", progress => {
+  console.log(`Progress: ${(progress * 100).toFixed(1)}%`);
+});
+```
+
+#### `resize`
+
+Triggered when the canvas is automatically resized.
+
+```typescript
+waveform.on("resize", dimensions => {
+  console.log(`Canvas resized to ${dimensions.width}x${dimensions.height}`);
+});
+```
+
+#### `renderStart` / `renderComplete`
+
+Triggered when rendering begins and when it finishes.
+
+```typescript
+waveform.on("renderStart", () => {
+  console.log("Rendering started");
+});
+
+waveform.on("renderComplete", () => {
+  console.log("Rendering completed");
+});
+```
+
+#### `error`
+
+Triggered when an error occurs.
+
+```typescript
+waveform.on("error", error => {
+  console.error("Waveform error:", error.message);
+});
+```
+
+#### `destroy`
+
+Triggered when the renderer instance is destroyed.
+
+```typescript
+waveform.on("destroy", () => {
+  console.log("Renderer destroyed");
+});
+```
+
+## Configuration Options
+
+### WaveformOptions
+
+```typescript
+interface WaveformOptions {
+  amplitude?: number; // Vertical scale multiplier (default: 1)
+  backgroundColor?: string; // Canvas background color (default: "#CCCCCC")
+  barWidth?: number; // Width of each bar in pixels (default: 2)
+  borderColor?: string; // Border color of bars (default: "#000000")
+  borderRadius?: number; // Border radius of bars (default: 0)
+  borderWidth?: number; // Border width of bars (default: 0)
+  color?: string; // Primary waveform color (default: "#000000")
+  debug?: boolean; // Enable debug logging (default: false)
+  gap?: number; // Gap between bars in pixels (default: 1)
+  minPixelRatio?: number; // Minimum pixel ratio for HiDPI (default: 1)
+  position?: RenderMode; // Vertical position (default: "center")
+  progress?: number; // Initial progress 0–1 (default: 0)
+  progressLine?: null | ProgressLineOptions; // Progress line configuration
+  smoothing?: boolean; // Enable canvas smoothing (default: true)
+}
+```
+
+### ProgressLineOptions
+
+```typescript
+interface ProgressLineOptions {
+  color?: string; // Line color (default: "#FF0000")
+  heightPercent?: number; // Height relative to canvas (default: 1)
+  position?: RenderMode; // Vertical position (default: "center")
+  style?: "solid" | "dashed" | "dotted"; // Line style (default: "solid")
+  width?: number; // Line width in pixels (default: 2)
+}
+```
+
+### RenderMode
+
+```typescript
+type RenderMode = "top" | "center" | "bottom";
+```
+
+* `"top"` — Align to the top of the canvas.
+* `"center"` — Center vertically (default).
+* `"bottom"` — Align to the bottom of the canvas.
+
+### Default Values
+
+```typescript
+const DEFAULT_OPTIONS = {
+  amplitude: 1,
+  backgroundColor: "#CCCCCC",
+  barWidth: 2,
+  borderColor: "#000000",
+  borderRadius: 0,
+  borderWidth: 0,
+  color: "#000000",
+  gap: 1,
+  minPixelRatio: 1,
+  position: "center",
+  progress: 0,
+  debug: false,
+  smoothing: true,
+  progressLine: {
+    color: "#FF0000",
+    heightPercent: 1,
+    position: "center",
+    style: "solid",
+    width: 2,
+  },
+};
+```
+
+## Utility Functions
+
+### `getPeaksFromAudioBuffer(audioBuffer: AudioBuffer, numberOfPeaks: number): number[]`
+
+Extracts normalized peak data (`-1 to 1`) from an `AudioBuffer`.
+
+**Parameters:**
+
+* `audioBuffer` — A Web Audio API `AudioBuffer`.
+* `numberOfPeaks` — Number of data points to extract.
+
+**Returns:** An array of normalized peak values.
+
+```typescript
+const response = await fetch("audio.mp3");
+const arrayBuffer = await response.arrayBuffer();
+const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+// Extract 1000 peaks
+const peaks = getPeaksFromAudioBuffer(audioBuffer, 1000);
+```
+
+## Advanced Types
+
+### CustomRenderer
+
+Interface for defining custom rendering logic.
+
+```typescript
+interface CustomRenderer {
+  render(
+    ctx: CanvasRenderingContext2D,
+    cache: RenderCache,
+    options: Required<WaveformOptions>,
+    staticPath?: Path2D,
+  ): boolean; // Return true if fully handled
+}
+```
+
+### RenderHook
+
+Interface for extending the rendering process with lifecycle hooks.
+
+```typescript
+interface RenderHook {
+  beforeRender?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
+  afterBackground?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
+  afterProgress?: (
+    ctx: CanvasRenderingContext2D,
+    cache: RenderCache,
+    options: Required<WaveformOptions>,
+    progress: number,
+  ) => void;
+  afterComplete?: (ctx: CanvasRenderingContext2D, cache: RenderCache, options: Required<WaveformOptions>) => void;
+}
+```
+
+### DebugInfo
+
+Structure returned by `getDebugInfo()` with performance and state details.
+
+```typescript
+interface DebugInfo {
+  performance: {
+    lastRenderTime: number;
+    averageRenderTime: number;
+    totalRenders: number;
+    fps: number;
+    cacheBuilds: number;
+    lastCacheBuildTime: number;
+  };
+  state: {
+    canvasSize: { width: number; height: number };
+    peaksCount: number;
+    barsRendered: number;
+    cacheValid: boolean;
+    dirtyFlags: DirtyFlags;
+  };
+  events: {
+    totalSeeks: number;
+    totalResizes: number;
+    totalErrors: number;
+  };
+}
+```
+
+## Error Handling
+
+The renderer emits `error` events when failures occur.
+
+```typescript
+waveform.on("error", error => {
+  console.error("Waveform error:", error.message);
+
+  if (error.message.includes("Canvas")) {
+    // Canvas-related error
+  } else if (error.message.includes("Peaks")) {
+    // Peaks-related error
+  }
+});
+```
+
+Common causes:
+
+* Invalid or missing `<canvas>` element.
+* Empty or invalid peaks array.
+* Failure creating a canvas context.
+* Invalid configuration values.
+
+## Performance Tips
+
+1. **Choose an appropriate peak count**: \~500–2000 works for most use cases.
+2. **Leverage caching**: Built-in caching optimizes rendering automatically.
+3. **Throttle progress updates**: Avoid updating more than 60 times per second.
+4. **Use debug mode**: Inspect performance with `getDebugInfo()`.
+5. **Clean up properly**: Always call `destroy()` when removing a waveform.
+
+```typescript
+// Example: throttle progress updates (~60fps)
+let lastUpdate = 0;
+audio.addEventListener("timeupdate", () => {
+  const now = Date.now();
+  if (now - lastUpdate > 16) {
+    waveform.setProgress(audio.currentTime / audio.duration);
+    lastUpdate = now;
+  }
+});

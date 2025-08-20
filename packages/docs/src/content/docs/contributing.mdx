@@ -1,0 +1,307 @@
+---
+title: Contributing
+description: Learn how to contribute to Waveform Renderer development
+---
+
+We welcome contributions to **Waveform Renderer**!
+Whether you're fixing bugs, adding features, improving documentation, or helping with testing, your work makes this project better for everyone. 🚀
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+- **Node.js** 18+
+- **pnpm** (recommended package manager)
+- **Git** for version control
+- A **GitHub account** for pull requests
+
+### Setup
+
+1. **Fork and clone the repository**
+
+```bash
+git clone https://github.com/YOUR_USERNAME/waveform-renderer.git
+cd waveform-renderer
+````
+
+2. **Install dependencies**
+
+```bash
+pnpm install
+```
+
+3. **Verify installation**
+
+```bash
+pnpm test     # Run tests
+pnpm build    # Build packages
+pnpm dev:lib  # Start development mode
+```
+
+---
+
+## Project Structure
+
+Waveform Renderer is a **monorepo**:
+
+```
+waveform-renderer/
+├── packages/
+│   ├── waveform-renderer/     # Main library
+│   │   ├── src/               # Source code
+│   │   ├── test/              # Unit tests
+│   │   └── dist/              # Build output
+│   └── docs/                  # Documentation site
+├── pnpm-workspace.yaml
+└── package.json
+```
+
+---
+
+## Development
+
+### Library
+
+```bash
+pnpm dev:lib    # Start dev mode (watch mode)
+pnpm build:lib  # Build library
+pnpm test       # Run tests
+pnpm lint       # Run linter
+pnpm type-check # TypeScript checks
+```
+
+### Documentation
+
+```bash
+pnpm dev:docs   # Start docs server
+pnpm build:docs # Build docs
+```
+
+### Global
+
+```bash
+pnpm build      # Build everything
+pnpm test       # Run all tests
+pnpm lint       # Lint all packages
+pnpm format     # Format code
+```
+
+---
+
+## Testing
+
+Waveform Renderer has **200+ unit tests** powered by [Vitest](https://vitest.dev/).
+
+```bash
+pnpm test             # Run all tests
+pnpm test:coverage    # Run with coverage (inside /waveform-renderer)
+```
+
+Example:
+
+```ts
+import { describe, it, expect, beforeEach } from "vitest";
+import { WaveformRenderer } from "../src/renderer";
+
+describe("WaveformRenderer", () => {
+  let canvas: HTMLCanvasElement;
+  let peaks: number[];
+
+  beforeEach(() => {
+    canvas = document.createElement("canvas");
+    peaks = Array.from({ length: 100 }, () => Math.random());
+  });
+
+  it("initializes correctly", () => {
+    const waveform = new WaveformRenderer(canvas, peaks);
+    expect(waveform).toBeDefined();
+    waveform.destroy();
+  });
+});
+```
+
+**Guidelines:**
+
+* Test happy path + edge cases
+* Clean up with `destroy()`
+* Use descriptive test names
+* Group related tests with `describe`
+
+---
+
+## Code Style
+
+* **Strict TypeScript** – no `any`
+* **Explicit types** for public APIs
+* **JSDoc** comments on exported methods
+* **Consistent naming** – camelCase (vars), PascalCase (classes)
+
+```ts
+// ✅ Good
+export interface WaveformOptions {
+  color?: string;
+}
+
+export class WaveformRenderer {
+  constructor(canvas: HTMLCanvasElement, peaks: number[]) {}
+}
+
+// ❌ Avoid
+function doStuff(data: any): any {}
+```
+
+Linting uses [oxlint](https://github.com/oxc-project/oxc):
+
+```bash
+pnpm lint
+```
+
+---
+
+## Pull Requests
+
+### Before you start
+
+1. Check existing **issues**
+2. Open an issue first for significant changes
+3. Keep PRs focused – one fix/feature per PR
+
+### Workflow
+
+1. Create a feature branch
+
+```bash
+git checkout -b feature/your-feature
+```
+
+2. Make changes
+3. Add tests + docs if needed
+4. Commit with **conventional commits**
+
+```bash
+git commit -m "feat: add custom renderer support"
+```
+
+5. Push and open a PR on GitHub
+
+**PR Checklist**
+
+* [ ] Tests pass (`pnpm test`)
+* [ ] Types correct (`pnpm type-check`)
+* [ ] Code linted (`pnpm lint`)
+* [ ] Docs updated if necessary
+
+---
+
+## Bug Reports
+
+Please include:
+
+* Clear description
+* Steps to reproduce
+* Expected vs actual behavior
+* Environment info (browser, OS, version)
+* Minimal code sample
+
+---
+
+## Feature Requests
+
+Include:
+
+* What you need and why
+* Example use case
+* Proposed API (if possible)
+* Alternatives considered
+
+---
+
+## Documentation
+
+Docs are built with **Astro Starlight**.
+To contribute:
+
+```bash
+pnpm dev:docs
+```
+
+Guidelines:
+
+* Keep explanations simple
+* Provide working examples
+* Start with basics, then advanced
+* Use visuals when helpful
+
+---
+
+## Releases
+
+Handled by maintainers using a custom release script optimized for this monorepo.
+
+### Release Commands
+
+```bash
+# Interactive release process
+pnpm release:lib
+
+# Preview release without making changes (recommended first)
+pnpm release:lib --dry-run
+```
+
+### Release Process
+
+The custom release script includes:
+
+1. **Repository checks** - Ensures clean working directory
+2. **Tests and linting** - Full test suite and lint checks
+3. **Build** - Compiles the library
+4. **Package preview** - Shows files to be published with status:
+   - ✨ **NEW** - Files added since last release
+   - 📝 **MODIFIED** - Files changed since last release  
+   - 🔄 **UNCHANGED** - Files with no changes
+   - ⚠️ **INCLUDED** - Potentially unnecessary files
+5. **Version selection** - Interactive choice (patch/minor/major/custom)
+6. **Confirmation** - Final approval before publishing
+7. **Git operations** - Creates commit and tag
+8. **NPM publish** - Publishes to npm registry
+9. **GitHub push** - Pushes changes and tags
+
+### Versioning
+
+Follow [Semantic Versioning](https://semver.org/):
+
+* **Major** → Breaking changes
+* **Minor** → Features (backward compatible)
+* **Patch** → Fixes, docs, perf
+
+Always test releases first with `--dry-run` mode to preview changes without publishing.
+
+---
+
+## Community
+
+We follow the [Contributor Covenant](https://www.contributor-covenant.org/).
+Be respectful, inclusive, and constructive.
+
+**Get help via:**
+
+* [Discussions](https://github.com/maximux13/waveform-renderer/discussions)
+* [Issues](https://github.com/maximux13/waveform-renderer/issues)
+* [Docs](https://waveform-renderer.vercel.app)
+
+---
+
+## Useful Links
+
+* **Repo**: [https://github.com/maximux13/waveform-renderer](https://github.com/maximux13/waveform-renderer)
+* **Docs**: [https://waveform-renderer.vercel.app](https://waveform-renderer.vercel.app)
+* **NPM**: [https://www.npmjs.com/package/waveform-renderer](https://www.npmjs.com/package/waveform-renderer)
+
+---
+
+Thanks for contributing to Waveform Renderer! 🎉
+Every pull request, issue, and comment helps make the project better.
