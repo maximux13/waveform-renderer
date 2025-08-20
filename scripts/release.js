@@ -560,7 +560,7 @@ async function main() {
         ["--filter", "waveform-renderer", "publish", "--access", "public", "--tag", finalTag],
         {
           cwd: process.cwd(),
-          stdio: "pipe",
+          stdio: "inherit",
         },
       );
       s.stop(`Published to npm with tag '${finalTag}': ✓`);
